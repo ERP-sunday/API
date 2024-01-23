@@ -19,7 +19,9 @@ import {
           const newObject = new this.Model(data);
           await newObject.validate();
       
-          return await newObject.save();
+          const insertedObject = await newObject.save();
+
+          return insertedObject.toObject({ versionKey: false })
         } catch (e) {
           console.log(e);
           throw new BadRequestException();
@@ -39,9 +41,9 @@ import {
               .join(' '),
           )
           .populate((params?.populate || []).join(' '));
-  
+
         // @ts-ignore
-        return finedObject || null;
+        return finedObject.toObject({ versionKey: false }) || null;
       } catch (e) {
         return null;
       }

@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 export enum IngredientCategory {
-
+    VEGETABLE = "VEGETABLE"
 }
 
 @Schema()
@@ -13,11 +13,8 @@ export class Ingredient extends Document {
     @Prop({ type: [String], trim: true })
     allergenes: string[]
 
-    @Prop({ required: true })
+    @Prop({ required: false })
     image: string
-
-    @Prop({ trim: true, required: true })
-    description: string
 
     @Prop({ required: true, enum: IngredientCategory })
     category: IngredientCategory;
