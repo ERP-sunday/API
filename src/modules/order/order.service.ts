@@ -14,7 +14,7 @@ export class OrderService {
     try {
       const response = await this.orderRepository.insert(
         {
-          tableNumber: orderData.tableNumber,
+          tableNumberId: orderData.tableNumberId,
           dishes: orderData.dishes,
           status: orderData.status,
           totalPrice: orderData.totalPrice,

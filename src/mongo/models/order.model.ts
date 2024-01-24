@@ -7,7 +7,7 @@ export enum OrderStatus {
 
 class DishOrder {
     @Prop({ type: Types.ObjectId, ref: 'Dish' , required: true })
-    dish: Types.ObjectId;
+    dishId: Types.ObjectId;
 
     @Prop({ required: true, default: false })
     isPaid: boolean;
@@ -16,7 +16,7 @@ class DishOrder {
 @Schema()
 export class Order extends Document {
     @Prop({ type: Types.ObjectId, ref: 'RestaurantTable', required: true })
-    tableNumber: Types.ObjectId;
+    tableNumberId: Types.ObjectId;
 
     @Prop({ type: [DishOrder], required: true })
     dishes: DishOrder[];

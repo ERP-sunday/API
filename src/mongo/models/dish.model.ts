@@ -7,7 +7,7 @@ export enum DishCategory {
 
 class DishIngredient {
     @Prop([{ type: Types.ObjectId, ref: 'Ingredient', required: true }])
-    id: string
+    ingredientId: string
 
     @Prop({ required: true })
     quantity: number

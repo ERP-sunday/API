@@ -3,7 +3,7 @@ export class StockDTO {
 }
 
 class IngredientItemDTO {
-    ingredient: string
+    ingredientId: string
     currentQuantity: number
     minimalQuantity: number
     dateAddedToStock: string

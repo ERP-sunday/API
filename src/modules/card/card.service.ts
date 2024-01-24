@@ -15,7 +15,7 @@ export class CardService {
       const response = await this.cardRepository.insert(
         {
           name: cardData.name,
-          dishes: cardData.dishes,
+          dishesId: cardData.dishesId,
           isActive: cardData.isActive,
           creationDate: cardData.creationDate
         }

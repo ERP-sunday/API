@@ -7,7 +7,7 @@ export class Card extends Document {
     name: string;
 
     @Prop([{ type: Types.ObjectId, ref: 'Dish', required: true }])
-    dishes: Types.ObjectId[];
+    dishesId: Types.ObjectId[];
 
     @Prop({ required: true })
     isActive: boolean;
