@@ -10,6 +10,8 @@ import { DishRepository } from './repositories/dish.repository';
 import { IngredientRepository } from './repositories/ingredient.repository';
 import { OrderRepository } from './repositories/order.repository';
 import { StockRepository } from './repositories/stock.repository';
+import { RestaurantTableRepository } from './repositories/restaurant.table.repository';
+import { RestaurantTableSchema, RestaurantTable } from './models/restaurant.table.model';
 
 @Module({
   imports: [
@@ -17,21 +19,24 @@ import { StockRepository } from './repositories/stock.repository';
     NestMongooseModule.forFeature([{ name: Dish.name, schema: DishSchema }]),
     NestMongooseModule.forFeature([{ name: Ingredient.name, schema: IngredientSchema }]),
     NestMongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),
-    NestMongooseModule.forFeature([{ name: Stock.name, schema: StockSchema }])
+    NestMongooseModule.forFeature([{ name: Stock.name, schema: StockSchema }]),
+    NestMongooseModule.forFeature([{ name: RestaurantTable.name, schema: RestaurantTableSchema }])
   ],
   providers: [
     CardRepository,
     DishRepository,
     IngredientRepository,
     OrderRepository,
-    StockRepository
+    StockRepository,
+    RestaurantTableRepository
   ],
   exports: [
     CardRepository,
     DishRepository,
     IngredientRepository,
     OrderRepository,
-    StockRepository
+    StockRepository,
+    RestaurantTableRepository
   ],
 })
 export class MongoModule {}

@@ -1,12 +1,4 @@
-import {
-  Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Put
-  } from '@nestjs/common';
+import { Controller, Get, Body, Param, Put, Delete, Post } from '@nestjs/common';
 import { CardService } from './card.service';
 import { Card } from 'src/mongo/models/card.model';
 import { CardDTO } from 'src/dto/card.dto';
