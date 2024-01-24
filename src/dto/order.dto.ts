@@ -7,6 +7,7 @@ export class OrderDTO {
     totalPrice: number;
     tips: number;
     date: string;
+    creationDate?: string;
 }
 
 class DishOrderDTO {

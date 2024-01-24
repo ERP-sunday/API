@@ -32,6 +32,9 @@ export class Order extends Document {
 
     @Prop({ required: true })
     date: string;
+
+    @Prop({ required: true })
+    creationDate: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

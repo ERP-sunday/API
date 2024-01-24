@@ -20,6 +20,7 @@ export class OrderService {
           totalPrice: orderData.totalPrice,
           tips: orderData.tips,
           date: orderData.date,
+          creationDate: orderData.creationDate
         }
       )
 

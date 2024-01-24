@@ -4,6 +4,7 @@ import { Card } from 'src/mongo/models/card.model';
 import { CardDTO } from 'src/dto/card.dto';
 import { Response } from 'src/utils/response';
 import { DataType } from 'src/mongo/repositories/base.repository';
+import { DateBeautifier } from 'src/utils/date.beautifier';
   
   @Controller('cards')
   export class CardController {
@@ -11,6 +12,7 @@ import { DataType } from 'src/mongo/repositories/base.repository';
   
     @Post()
     async createOne(@Body() ingredientData: CardDTO): Promise<Response<Card>> {
+      ingredientData.creationDate = DateBeautifier.shared.getFullDate()
       const response = await this.cardService.createOne(ingredientData)
 
       return { error: "", data: response }
