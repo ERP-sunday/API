@@ -49,4 +49,4 @@ import { DataType } from 'src/mongo/repositories/base.repository';
     async deleteOne(@Param() params: any) {
       await this.ingredientService.deleteOne(params.id)
     }
-  }
+}
