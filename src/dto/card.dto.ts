@@ -1,6 +1,6 @@
 export class CardDTO {
     name: string
-    dishes: string[]
+    dishesId: string[]
     isActive: boolean
     creationDate: string
 }

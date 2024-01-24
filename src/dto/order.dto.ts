@@ -1,7 +1,7 @@
 import { OrderStatus } from "src/mongo/models/order.model";
 
 export class OrderDTO {
-    tableNumber: string;
+    tableNumberId: string;
     dishes: DishOrderDTO[];
     status: OrderStatus;
     totalPrice: number;
@@ -10,6 +10,6 @@ export class OrderDTO {
 }
 
 class DishOrderDTO {
-    dish: string;
+    dishId: string;
     isPaid: boolean;
 }

@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 class IngredientItem {
     @Prop({ type: Types.ObjectId, ref: 'Ingredient', required: true })
-    ingredient: Types.ObjectId;
+    ingredientId: Types.ObjectId;
 
     @Prop({ required: true , default: 0})
     currentQuantity: number;

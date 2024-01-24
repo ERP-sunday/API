@@ -13,6 +13,6 @@ export class DishDTO {
 }
 
 class DishIngredientDTO {
-    id: string
+    ingredientId: string
     quantity: number
 }
