@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Param, Put, Delete, Post } from '@nestjs/common';
+import { Controller, Get, Body, Param, Put, Delete, Post, HttpStatus, HttpCode } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Order } from 'src/mongo/models/order.model';
 import { DataType } from 'src/mongo/repositories/base.repository';
@@ -11,6 +11,7 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
   
     @Post()
+    @HttpCode(HttpStatus.CREATED)
     async createOne(@Body() orderData: OrderDTO): Promise<Response<Order>> {
       orderData.creationDate = DateBeautifier.shared.getFullDate()
       const response = await this.orderService.createOne(orderData)
@@ -19,6 +20,7 @@ export class OrderController {
     }
   
     @Get()
+    @HttpCode(HttpStatus.OK)
     async findAll(): Promise<Response<Order[]>> {
         const response = await this.orderService.findAll()
 
@@ -26,6 +28,7 @@ export class OrderController {
     }
 
     @Get(":id")
+    @HttpCode(HttpStatus.OK)
     async finOne(@Param() params: any): Promise<Response<Order>> {
       const response = await this.orderService.findOne(params.id)
 
@@ -33,6 +36,7 @@ export class OrderController {
     }
 
     @Put(":id")
+    @HttpCode(HttpStatus.OK)
     async updateOne(@Param() params: any, @Body() updateData: DataType): Promise<Response<Order>> {
       const response = await this.orderService.updateOne(params.id, updateData)
 
@@ -40,6 +44,7 @@ export class OrderController {
     }
 
     @Delete(":id")
+    @HttpCode(HttpStatus.NO_CONTENT)
     async deleteOne(@Param() params: any) {
       await this.orderService.deleteOne(params.id)
     }

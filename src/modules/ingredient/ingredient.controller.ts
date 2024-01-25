@@ -3,6 +3,8 @@ import {
     Controller,
     Delete,
     Get,
+    HttpCode,
+    HttpStatus,
     Param,
     Post,
     Put
@@ -18,6 +20,7 @@ import { DataType } from 'src/mongo/repositories/base.repository';
     constructor(private readonly ingredientService: IngredientService) {}
 
     @Post()
+    @HttpCode(HttpStatus.CREATED)
     async createOne(@Body() ingredientData: IngredientDTO): Promise<Response<Ingredient>> {
       const response = await this.ingredientService.createOne(ingredientData)
 
@@ -25,6 +28,7 @@ import { DataType } from 'src/mongo/repositories/base.repository';
     }
   
     @Get()
+    @HttpCode(HttpStatus.OK)
     async findAll(): Promise<Response<Ingredient[]>> {
         const response = await this.ingredientService.findAll()
 
@@ -32,6 +36,7 @@ import { DataType } from 'src/mongo/repositories/base.repository';
     }
 
     @Get(":id")
+    @HttpCode(HttpStatus.OK)
     async finOne(@Param() params: any): Promise<Response<Ingredient>> {
       const response = await this.ingredientService.findOne(params.id)
 
@@ -39,6 +44,7 @@ import { DataType } from 'src/mongo/repositories/base.repository';
     }
 
     @Put(":id")
+    @HttpCode(HttpStatus.OK)
     async updateOne(@Param() params: any, @Body() updateData: DataType): Promise<Response<Ingredient>> {
       const response = await this.ingredientService.updateOne(params.id, updateData)
 
@@ -46,6 +52,7 @@ import { DataType } from 'src/mongo/repositories/base.repository';
     }
 
     @Delete(":id")
+    @HttpCode(HttpStatus.NO_CONTENT)
     async deleteOne(@Param() params: any) {
       await this.ingredientService.deleteOne(params.id)
     }

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { StockDTO } from 'src/dto/stock.dto';
 import { Stock } from 'src/mongo/models/stock.model';
 import { DataType } from 'src/mongo/repositories/base.repository';
@@ -21,7 +21,10 @@ export class StockService {
       return response as Stock
     } catch (e) {
       console.log(e);
-      throw new BadRequestException();
+      if (e.name === 'ValidationError') {
+        throw new BadRequestException(e.message);
+      }
+      throw new InternalServerErrorException(e.message);
     }
   }
 
@@ -32,7 +35,7 @@ export class StockService {
       return response as Stock[]
     } catch (e) {
       console.log(e);
-      throw new BadRequestException();
+      throw new InternalServerErrorException(e.message);
     }
   }
 
@@ -40,10 +43,17 @@ export class StockService {
     try {
       const response = await this.stockRepository.findOneBy({ _id: id })
 
+      if (!response) {
+        throw new NotFoundException(`Stock with ID ${id} not found`);
+      }
+
       return response as Stock
     } catch (e) {
       console.log(e);
-      throw new BadRequestException();
+      if (e.name == "CastError") {
+        throw new BadRequestException('Invalid ID format');
+      }
+      throw new InternalServerErrorException(e.message);
     }
   }
 
@@ -52,7 +62,7 @@ export class StockService {
       const isUpdate = await this.stockRepository.updateOneBy({ _id: id }, stockData)
 
       if (!isUpdate) {
-        throw new BadRequestException();
+        throw new NotFoundException(`Stock with ID ${id} not found`);
       }
 
       const response = await this.findOne(id)
@@ -60,16 +70,23 @@ export class StockService {
       return response as Stock
     } catch (e) {
       console.log(e);
-      throw new BadRequestException();
+      if (e.message.includes('Unable to remove dish')) {
+        throw new BadRequestException(e.message);
+      }
+      throw new InternalServerErrorException(e.message);
     }
   }
 
   async deleteOne(id: string) {
     try {
-      await this.stockRepository.deleteOnyBy({ _id: id })
+      const isDeleted = await this.stockRepository.deleteOnyBy({ _id: id })
+
+      if (!isDeleted) {
+        throw new NotFoundException(`Order with ID ${id} not found`);
+      }
     } catch (e) {
       console.log(e);
-      throw new BadRequestException();
+      throw new InternalServerErrorException(e.message);
     }
   }
 }
