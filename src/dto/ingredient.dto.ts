@@ -1,8 +1,17 @@
-import { IngredientCategory } from "src/mongo/models/ingredient.model"
+import { IsString, IsArray, IsOptional } from 'class-validator';
+import { IngredientCategory } from "src/mongo/models/ingredient.model";
 
 export class IngredientDTO {
-    name: string
-    allergenes: string[]
-    image?: string
-    category: IngredientCategory
+    @IsString()
+    name: string;
+
+    @IsArray()
+    allergenes: string[];
+
+    @IsOptional()
+    @IsString()
+    image?: string;
+
+    @IsString()
+    category: IngredientCategory;
 }

@@ -5,16 +5,16 @@ class IngredientItem {
     @Prop({ type: Types.ObjectId, ref: 'Ingredient', required: true })
     ingredientId: Types.ObjectId;
 
-    @Prop({ required: true , default: 0})
+    @Prop({ type: Number, required: true , default: 0})
     currentQuantity: number;
 
-    @Prop({ required: true, default: 0 })
+    @Prop({ type: Number, required: true, default: 0 })
     minimalQuantity: number;
 
-    @Prop({ required: true })
+    @Prop({ type: String, required: true })
     dateAddedToStock: string;
 
-    @Prop({ required: false })
+    @Prop({ type: String, required: false })
     dateLastModified?: string;
 }
 
