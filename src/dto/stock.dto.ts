@@ -1,11 +1,27 @@
+import { IsArray, ValidateNested, IsString, IsNumber, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+
 export class StockDTO {
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => IngredientItemDTO)
     ingredients: IngredientItemDTO[];
 }
 
-class IngredientItemDTO {
-    ingredientId: string
-    currentQuantity: number
-    minimalQuantity: number
-    dateAddedToStock: string
-    dateLastModified?: string
+export class IngredientItemDTO {
+    @IsString()
+    ingredientId: string;
+
+    @IsNumber()
+    currentQuantity: number;
+
+    @IsNumber()
+    minimalQuantity: number;
+
+    @IsString()
+    dateAddedToStock: string;
+
+    @IsOptional()
+    @IsString()
+    dateLastModified?: string;
 }

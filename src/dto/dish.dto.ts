@@ -1,19 +1,44 @@
-import { Types } from "mongoose"
-import { DishCategory } from "src/mongo/models/dish.model"
+import { DishCategory } from "src/mongo/models/dish.model";
+import { IsString, IsNumber, IsBoolean, IsOptional, ValidateNested, IsArray } from "class-validator";
+import { Type } from "class-transformer";
 
 export class DishDTO {
-    name: string
-    ingredients: DishIngredientDTO[]
-    price: number
-    image: string
-    description: string
-    category: DishCategory
-    timeCook?: number
-    isAvailable: boolean
-    creationDate?: string
+    @IsString()
+    name: string;
+
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => DishIngredientDTO)
+    ingredients: DishIngredientDTO[];
+
+    @IsNumber()
+    price: number;
+
+    @IsString()
+    image: string;
+
+    @IsString()
+    description: string;
+
+    @IsString()
+    category: DishCategory;
+
+    @IsOptional()
+    @IsNumber()
+    timeCook?: number;
+
+    @IsBoolean()
+    isAvailable: boolean;
+
+    @IsOptional()
+    @IsString()
+    creationDate?: string;
 }
 
-class DishIngredientDTO {
-    ingredientId: string
-    quantity: number
+export class DishIngredientDTO {
+    @IsString()
+    ingredientId: string;
+
+    @IsNumber()
+    quantity: number;
 }

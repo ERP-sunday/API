@@ -1,5 +1,16 @@
+import { IsString, IsBoolean, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { DishDTO } from './dish.dto';
+
 export class CardDTO {
-    name: string
-    dishesId: string[]
-    isActive: boolean
+    @IsString()
+    name: string;
+
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => DishDTO)
+    dishesId: DishDTO[]
+
+    @IsBoolean()
+    isActive: boolean;
 }

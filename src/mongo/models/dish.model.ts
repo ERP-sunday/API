@@ -9,37 +9,37 @@ class DishIngredient {
     @Prop([{ type: Types.ObjectId, ref: 'Ingredient', required: true }])
     ingredientId: string
 
-    @Prop({ required: true })
+    @Prop({ type: Number, required: true })
     quantity: number
 }
 
 @Schema()
 export class Dish extends Document {
-    @Prop({ required: true, unique: true, trim: true })
+    @Prop({ type: String, required: true, unique: true, trim: true })
     name: string;
 
     @Prop({ type: [DishIngredient], required: true })
     ingredients: DishIngredient[]
 
-    @Prop({ required: true })
+    @Prop({ type: Number, required: true })
     price: number
 
-    @Prop({ required: true })
+    @Prop({ type: String, required: true })
     image: string
 
-    @Prop({ trim: true, required: true })
+    @Prop({ type: String, trim: true, required: true })
     description: string
 
     @Prop({ required: true, enum: DishCategory })
     category: DishCategory;
 
-    @Prop()
+    @Prop({ type: Number })
     timeCook: number;
 
-    @Prop({ required: true })
+    @Prop({ type: Boolean, required: true })
     isAvailable: boolean;
 
-    @Prop({ required: true })
+    @Prop({ type: String, required: true })
     creationDate: string
 }
 

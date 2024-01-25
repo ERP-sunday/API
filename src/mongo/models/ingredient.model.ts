@@ -7,13 +7,13 @@ export enum IngredientCategory {
 
 @Schema()
 export class Ingredient extends Document {
-    @Prop({ required: true, unique: true, trim: true })
+    @Prop({ type: String, required: true, unique: true, trim: true })
     name: string;
 
     @Prop({ type: [String], trim: true })
     allergenes: string[]
 
-    @Prop({ required: false })
+    @Prop({ type: String, required: false })
     image: string
 
     @Prop({ required: true, enum: IngredientCategory })

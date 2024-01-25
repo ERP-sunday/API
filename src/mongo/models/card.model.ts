@@ -4,19 +4,19 @@ import { DateBeautifier } from 'src/utils/date.beautifier';
 
 @Schema()
 export class Card extends Document {
-    @Prop({ required: true, unique: true, trim: true })
+    @Prop({ type: String, required: true, unique: true, trim: true })
     name: string;
 
     @Prop([{ type: Types.ObjectId, ref: 'Dish', required: true, unique: true }])
     dishesId: Types.ObjectId[];
 
-    @Prop({ required: true, default: false })
+    @Prop({ type: Boolean, required: true, default: false })
     isActive: boolean;
 
-    @Prop({ required: true, default: DateBeautifier.shared.getFullDate() })
+    @Prop({ type: String, required: true, default: DateBeautifier.shared.getFullDate() })
     dateOfCreation: string;
 
-    @Prop({ required: true, default: DateBeautifier.shared.getFullDate() })
+    @Prop({ type: String, required: true, default: DateBeautifier.shared.getFullDate() })
     dateLastModified: string;
 }
 

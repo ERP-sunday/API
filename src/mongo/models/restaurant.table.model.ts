@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class RestaurantTable extends Document {
-    @Prop({ required: true })
+    @Prop({ type: Number, required: true })
     number: number
 }
 

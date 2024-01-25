@@ -9,7 +9,7 @@ class DishOrder {
     @Prop({ type: Types.ObjectId, ref: 'Dish' , required: true })
     dishId: Types.ObjectId;
 
-    @Prop({ required: true, default: false })
+    @Prop({ type: Boolean, required: true, default: false })
     isPaid: boolean;
 }
 
@@ -21,19 +21,19 @@ export class Order extends Document {
     @Prop({ type: [DishOrder], required: true })
     dishes: DishOrder[];
 
-    @Prop({ required: true })
+    @Prop({ enum: OrderStatus, required: true })
     status: OrderStatus;
 
-    @Prop({ required: true })
+    @Prop({ type: Number, required: true })
     totalPrice: number;
 
-    @Prop({ required: true, default: 0 })
+    @Prop({ type: Number, required: true, default: 0 })
     tips: number;
 
-    @Prop({ required: true })
+    @Prop({ type: String, required: true })
     date: string;
 
-    @Prop({ required: true })
+    @Prop({ type: String, required: true })
     creationDate: string;
 }
 
