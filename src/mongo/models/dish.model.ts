@@ -38,6 +38,9 @@ export class Dish extends Document {
 
     @Prop({ required: true })
     isAvailable: boolean;
+
+    @Prop({ required: true })
+    creationDate: string
 }
 
 export const DishSchema = SchemaFactory.createForClass(Dish);

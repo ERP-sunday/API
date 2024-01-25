@@ -10,6 +10,7 @@ export class DishDTO {
     category: DishCategory
     timeCook?: number
     isAvailable: boolean
+    creationDate?: string
 }
 
 class DishIngredientDTO {

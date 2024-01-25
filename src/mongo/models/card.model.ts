@@ -12,7 +12,7 @@ export class Card extends Document {
     @Prop({ required: true })
     isActive: boolean;
 
-    @Prop()
+    @Prop({ required: true })
     creationDate: string;
 }
 

@@ -4,6 +4,7 @@ import { Response } from 'src/utils/response';
 import { Dish } from 'src/mongo/models/dish.model';
 import { DataType } from 'src/mongo/repositories/base.repository';
 import { DishDTO } from 'src/dto/dish.dto';
+import { DateBeautifier } from 'src/utils/date.beautifier';
 
   @Controller('dishes')
   export class DishController {
@@ -11,6 +12,7 @@ import { DishDTO } from 'src/dto/dish.dto';
   
     @Post()
     async createOne(@Body() dishData: DishDTO): Promise<Response<Dish>> {
+      dishData.creationDate = DateBeautifier.shared.getFullDate()
       const response = await this.dishService.createOne(dishData)
 
       return { error: "", data: response }
