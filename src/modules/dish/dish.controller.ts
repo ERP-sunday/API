@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Param, Put, Delete, Post } from '@nestjs/common';
+import { Controller, Get, Body, Param, Put, Delete, Post, HttpStatus, HttpCode } from '@nestjs/common';
 import { DishService } from './dish.service';
 import { Response } from 'src/utils/response';
 import { Dish } from 'src/mongo/models/dish.model';
@@ -11,6 +11,7 @@ import { DateBeautifier } from 'src/utils/date.beautifier';
     constructor(private readonly dishService: DishService) {}
   
     @Post()
+    @HttpCode(HttpStatus.CREATED)
     async createOne(@Body() dishData: DishDTO): Promise<Response<Dish>> {
       dishData.creationDate = DateBeautifier.shared.getFullDate()
       const response = await this.dishService.createOne(dishData)
@@ -19,6 +20,7 @@ import { DateBeautifier } from 'src/utils/date.beautifier';
     }
   
     @Get()
+    @HttpCode(HttpStatus.OK)
     async findAll(): Promise<Response<Dish[]>> {
         const response = await this.dishService.findAll()
 
@@ -26,6 +28,7 @@ import { DateBeautifier } from 'src/utils/date.beautifier';
     }
 
     @Get(":id")
+    @HttpCode(HttpStatus.OK)
     async finOne(@Param() params: any): Promise<Response<Dish>> {
       const response = await this.dishService.findOne(params.id)
 
@@ -33,6 +36,7 @@ import { DateBeautifier } from 'src/utils/date.beautifier';
     }
 
     @Put(":id")
+    @HttpCode(HttpStatus.OK)
     async updateOne(@Param() params: any, @Body() updateData: DataType): Promise<Response<Dish>> {
       const response = await this.dishService.updateOne(params.id, updateData)
 
@@ -40,6 +44,7 @@ import { DateBeautifier } from 'src/utils/date.beautifier';
     }
 
     @Delete(":id")
+    @HttpCode(HttpStatus.NO_CONTENT)
     async deleteOne(@Param() params: any) {
       await this.dishService.deleteOne(params.id)
     }

@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Param, Put, Delete, Post } from '@nestjs/common';
+import { Controller, Get, Body, Param, Put, Delete, Post, HttpStatus, HttpCode } from '@nestjs/common';
 import { Response } from 'src/utils/response';
 import { DataType } from 'src/mongo/repositories/base.repository';
 import { StockService } from './stock.service';
@@ -10,6 +10,7 @@ import { StockDTO } from 'src/dto/stock.dto';
     constructor(private readonly stockService: StockService) {}
 
     @Post()
+    @HttpCode(HttpStatus.CREATED)
     async createOne(@Body() stockData: StockDTO): Promise<Response<Stock>> {
       const response = await this.stockService.createOne(stockData)
 
@@ -17,6 +18,7 @@ import { StockDTO } from 'src/dto/stock.dto';
     }
   
     @Get()
+    @HttpCode(HttpStatus.OK)
     async findAll(): Promise<Response<Stock[]>> {
         const response = await this.stockService.findAll()
 
@@ -24,6 +26,7 @@ import { StockDTO } from 'src/dto/stock.dto';
     }
 
     @Get(":id")
+    @HttpCode(HttpStatus.OK)
     async finOne(@Param() params: any): Promise<Response<Stock>> {
       const response = await this.stockService.findOne(params.id)
 
@@ -31,6 +34,7 @@ import { StockDTO } from 'src/dto/stock.dto';
     }
 
     @Put(":id")
+    @HttpCode(HttpStatus.OK)
     async updateOne(@Param() params: any, @Body() updateData: DataType): Promise<Response<Stock>> {
       const response = await this.stockService.updateOne(params.id, updateData)
 
@@ -38,6 +42,7 @@ import { StockDTO } from 'src/dto/stock.dto';
     }
 
     @Delete(":id")
+    @HttpCode(HttpStatus.NO_CONTENT)
     async deleteOne(@Param() params: any) {
       await this.stockService.deleteOne(params.id)
     }
