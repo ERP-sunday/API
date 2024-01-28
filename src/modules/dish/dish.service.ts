@@ -21,8 +21,7 @@ export class DishService {
           description: dishData.description,
           category: dishData.category,
           timeCook: dishData.timeCook,
-          isAvailable: dishData.isAvailable,
-          creationDate: dishData.creationDate
+          isAvailable: dishData.isAvailable
         }
       )
 

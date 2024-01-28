@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { DateBeautifier } from 'src/utils/date.beautifier';
 
 export enum DishCategory {
     MEAT = "MEAT"
@@ -39,8 +40,21 @@ export class Dish extends Document {
     @Prop({ type: Boolean, required: true })
     isAvailable: boolean;
 
-    @Prop({ type: String, required: true })
-    creationDate: string
+    @Prop({ type: String, required: true, default: DateBeautifier.shared.getFullDate() })
+    dateOfCreation: string;
+
+    @Prop({ type: String, required: false })
+    dateLastModified?: string;
 }
 
 export const DishSchema = SchemaFactory.createForClass(Dish);
+
+DishSchema.pre('updateOne', function(next) {
+    this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
+    next();
+});
+
+DishSchema.pre('findOneAndUpdate', function(next) {
+    this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
+    next();
+});

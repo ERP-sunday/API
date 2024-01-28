@@ -83,13 +83,15 @@ import {
       params?: AdditionalParams,
     ): Promise<T[]> {
       try {
-        return this.Model.find(condition)
+        const finedObject = await this.Model.find(condition)
           .select(
             (params?.hiddenPropertiesToSelect || [])
               .map((property) => `+${property}`)
               .join(' '),
           )
           .populate((params?.populate || []).join(' '));
+    
+        return finedObject.map((e) => e.toObject({ versionKey: false }));
       } catch {
         return [];
       }

@@ -2,6 +2,9 @@ import { IsArray, ValidateNested, IsString, IsNumber, IsOptional } from 'class-v
 import { Type } from 'class-transformer';
 
 export class StockDTO {
+    @IsString()
+    name: string;
+
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => IngredientItemDTO)
