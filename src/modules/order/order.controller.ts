@@ -13,7 +13,6 @@ export class OrderController {
     @Post()
     @HttpCode(HttpStatus.CREATED)
     async createOne(@Body() orderData: OrderDTO): Promise<Response<Order>> {
-      orderData.creationDate = DateBeautifier.shared.getFullDate()
       const response = await this.orderService.createOne(orderData)
 
       return { error: "", data: response }

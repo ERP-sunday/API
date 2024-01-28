@@ -18,9 +18,7 @@ export class OrderService {
           dishes: orderData.dishes,
           status: orderData.status,
           totalPrice: orderData.totalPrice,
-          tips: orderData.tips,
-          date: orderData.date,
-          creationDate: orderData.creationDate
+          tips: orderData.tips
         }
       )
 

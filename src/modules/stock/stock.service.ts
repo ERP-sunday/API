@@ -14,6 +14,7 @@ export class StockService {
     try {
       const response = await this.stockRepository.insert(
         {
+          name: stockData.name,
           ingredients: stockData.ingredients
         }
       )

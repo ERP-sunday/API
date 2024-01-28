@@ -13,7 +13,6 @@ import { DateBeautifier } from 'src/utils/date.beautifier';
     @Post()
     @HttpCode(HttpStatus.CREATED)
     async createOne(@Body() dishData: DishDTO): Promise<Response<Dish>> {
-      dishData.creationDate = DateBeautifier.shared.getFullDate()
       const response = await this.dishService.createOne(dishData)
 
       return { error: "", data: response }

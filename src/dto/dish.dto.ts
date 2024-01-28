@@ -29,10 +29,6 @@ export class DishDTO {
 
     @IsBoolean()
     isAvailable: boolean;
-
-    @IsOptional()
-    @IsString()
-    creationDate?: string;
 }
 
 export class DishIngredientDTO {

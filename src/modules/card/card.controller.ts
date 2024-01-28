@@ -11,8 +11,8 @@ import { DataType } from 'src/mongo/repositories/base.repository';
   
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    async createOne(@Body() ingredientData: CardDTO): Promise<Response<Card>> {
-      const response = await this.cardService.createOne(ingredientData)
+    async createOne(@Body() cardData: CardDTO): Promise<Response<Card>> {
+      const response = await this.cardService.createOne(cardData)
 
       return { error: "", data: response }
     }

@@ -19,13 +19,6 @@ export class OrderDTO {
 
     @IsNumber()
     tips: number;
-
-    @IsString()
-    date: string;
-
-    @IsOptional()
-    @IsString()
-    creationDate?: string;
 }
 
 export class DishOrderDTO {
