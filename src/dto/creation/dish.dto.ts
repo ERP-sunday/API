@@ -1,4 +1,4 @@
-import { DishCategory } from "src/mongo/models/dish.model";
+import { DishCategory, DishIngredientUnity } from "src/mongo/models/dish.model";
 import { IsString, IsNumber, IsBoolean, IsOptional, ValidateNested, IsArray } from "class-validator";
 import { Type } from "class-transformer";
 
@@ -13,9 +13,6 @@ export class DishDTO {
 
     @IsNumber()
     price: number;
-
-    @IsString()
-    image: string;
 
     @IsString()
     description: string;
@@ -34,6 +31,9 @@ export class DishDTO {
 export class DishIngredientDTO {
     @IsString()
     ingredientId: string;
+
+    @IsString()
+    unity: DishIngredientUnity
 
     @IsNumber()
     quantity: number;

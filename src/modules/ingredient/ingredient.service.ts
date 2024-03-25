@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { IngredientDTO } from 'src/dto/ingredient.dto';
+import { IngredientDTO } from 'src/dto/creation/ingredient.dto';
 import { Ingredient } from 'src/mongo/models/ingredient.model';
 import { DataType } from 'src/mongo/repositories/base.repository';
 import { IngredientRepository } from 'src/mongo/repositories/ingredient.repository';
@@ -10,13 +10,15 @@ export class IngredientService {
     private readonly ingredientRepository: IngredientRepository
   ) {}
 
+  async findByName(searchTerm: string): Promise<Ingredient[]> {
+    const regex = new RegExp(searchTerm, 'i'); // 'i' pour une recherche insensible à la casse
+    return this.ingredientRepository.findManyBy({ name: { $regex: regex } });
+  }
+
   async createOne(ingredientData: IngredientDTO): Promise<Ingredient> {
     try {
       const response = await this.ingredientRepository.insert({
-        name: ingredientData.name,
-        allergenes: ingredientData.allergenes,
-        image: ingredientData.image,
-        category: ingredientData.category
+        name: ingredientData.name
       })
 
       return response as Ingredient

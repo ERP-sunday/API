@@ -7,10 +7,11 @@ import {
     HttpStatus,
     Param,
     Post,
-    Put
+    Put,
+    Query
   } from '@nestjs/common';
 import { IngredientService } from './ingredient.service';
-import { IngredientDTO } from 'src/dto/ingredient.dto';
+import { IngredientDTO } from 'src/dto/creation/ingredient.dto';
 import { Ingredient } from 'src/mongo/models/ingredient.model';
 import { Response } from 'src/utils/response';
 import { DataType } from 'src/mongo/repositories/base.repository';
@@ -23,6 +24,13 @@ import { DataType } from 'src/mongo/repositories/base.repository';
     @HttpCode(HttpStatus.CREATED)
     async createOne(@Body() ingredientData: IngredientDTO): Promise<Response<Ingredient>> {
       const response = await this.ingredientService.createOne(ingredientData)
+
+      return { error: "", data: response }
+    }
+
+    @Get('/search')
+    async searchIngredients(@Query('name') name: string): Promise<Response<Ingredient[]>> {
+      const response = await this.ingredientService.findByName(name);
 
       return { error: "", data: response }
     }
