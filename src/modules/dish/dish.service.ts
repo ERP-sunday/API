@@ -4,15 +4,25 @@ import { DishDTO, DishIngredientDTO } from 'src/dto/creation/dish.dto';
 import { Dish } from 'src/mongo/models/dish.model';
 import { DataType } from 'src/mongo/repositories/base.repository';
 import { DishRepository } from 'src/mongo/repositories/dish.repository';
+import { IngredientRepository } from 'src/mongo/repositories/ingredient.repository';
 
 @Injectable()
 export class DishService {
   constructor(
-    private readonly dishRepository: DishRepository
+    private readonly dishRepository: DishRepository,
+    private readonly ingredientRepository: IngredientRepository
   ) {}
 
   async createOne(dishData: DishDTO): Promise<Dish> {
     try {
+      for (const ingredient of dishData.ingredients) {
+        const isExists = await this.ingredientRepository.findOneById(ingredient.ingredientId);
+
+        if (isExists == null) {
+          throw new BadRequestException(`Ingredient with ID ${ingredient.ingredientId} does not exist.`);
+        }
+      }
+
       const ingredientsWithObjectId = dishData.ingredients.map((ingredient: DishIngredientDTO) => ({
         ...ingredient,
         ingredientId: new Types.ObjectId(ingredient.ingredientId),
