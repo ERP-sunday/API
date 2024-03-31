@@ -3,8 +3,8 @@ import { UserRepository } from 'src/mongo/repositories/user.repository';
 import { UserDTO } from 'src/dto/user.dto';
 import { User } from 'src/mongo/models/user.model';
 import config from 'src/configs/config';
-import fetch from 'node-fetch';
 import axios from 'axios';
+import { UserUpdateDTO } from 'src/dto/user.update.dto';
 
 @Injectable()
 export class UserService {
@@ -12,7 +12,7 @@ export class UserService {
 
   updateUser = async (
     userId: string,
-    parameters: UserDTO,
+    parameters: UserUpdateDTO,
   ): Promise<User> => {
     // @ts-ignore
     return this.userRepository.updateOneBy({ _id: userId }, parameters);

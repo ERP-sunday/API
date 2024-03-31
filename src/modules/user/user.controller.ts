@@ -15,6 +15,7 @@ import { FirebaseTokenGuard } from 'src/guards/firebase-token.guard';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { UserDTO } from 'src/dto/user.dto';
 import { CurrentUserGuard } from 'src/guards/current-user.guard';
+import { UserUpdateDTO } from 'src/dto/user.update.dto';
   
   @Controller('users')
   @ApiTags('Users')
@@ -43,7 +44,7 @@ import { CurrentUserGuard } from 'src/guards/current-user.guard';
     @UseGuards(FirebaseTokenGuard)
     @ApiSecurity('Bearer')
     @HttpCode(HttpStatus.OK)
-    updateUser(@Body() body: UserDTO, @Param('userId') userId: string) {
+    updateUser(@Body() body: UserUpdateDTO, @Param('userId') userId: string) {
       const response = this.userService.updateUser(userId, body);
 
       return { error: "", data: response }
