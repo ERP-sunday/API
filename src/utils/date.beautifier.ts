@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-export class DateBeautifier {
+export default class DateBeautifier {
     static shared: DateBeautifier = new DateBeautifier()
 
     getFullDate(): string {

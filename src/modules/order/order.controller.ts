@@ -4,7 +4,6 @@ import { Order } from 'src/mongo/models/order.model';
 import { DataType } from 'src/mongo/repositories/base.repository';
 import { Response } from 'src/utils/response';
 import { OrderDTO } from 'src/dto/order.dto';
-import { DateBeautifier } from 'src/utils/date.beautifier';
 
 @Controller('orders')
 export class OrderController {
