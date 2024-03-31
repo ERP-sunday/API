@@ -7,7 +7,7 @@ cd API
 
 ## Ajouter les credentials et le fichier .env
 
-*(Tous les fichiers se trouve dans le dossier API reçu en privé)*
+:information_source: *(Tous les fichiers se trouve dans le dossier API reçu en privé)*
 
 Ajouter le fichier **credentials.json** dans le dossier **configs** (/src/configs) <br />
 Puis, à la racine du projet, ajouter le fichier **.env**
