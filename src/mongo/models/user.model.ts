@@ -2,14 +2,19 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { DateBeautifier } from 'src/utils/date.beautifier';
 
-export enum IngredientUnity {
-    VEGETABLE = "VEGETABLE"
-}
-
 @Schema()
-export class Ingredient extends Document {
-    @Prop({ type: String, required: true, unique: true, trim: true })
-    name: string;
+export class User extends Document {
+    @Prop({ required: true, unique: true, trim: true })
+    email: string;
+
+    @Prop({ select: false, required: true })
+    firebaseId: string;
+
+    @Prop({ required: true, trim: true })
+    firstname: string;
+
+    @Prop({ required: true, trim: true })
+    lastname: string;
 
     @Prop({ type: String, required: true, default: DateBeautifier.shared.getFullDate() })
     dateOfCreation: string;
@@ -18,14 +23,14 @@ export class Ingredient extends Document {
     dateLastModified?: string;
 }
 
-export const IngredientSchema = SchemaFactory.createForClass(Ingredient);
+export const UserSchema = SchemaFactory.createForClass(User);
 
-IngredientSchema.pre('updateOne', function(next) {
+UserSchema.pre('updateOne', function(next) {
     this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
     next();
 });
 
-IngredientSchema.pre('findOneAndUpdate', function(next) {
+UserSchema.pre('findOneAndUpdate', function(next) {
     this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
     next();
 });

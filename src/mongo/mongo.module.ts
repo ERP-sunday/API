@@ -12,6 +12,8 @@ import { OrderRepository } from './repositories/order.repository';
 import { StockRepository } from './repositories/stock.repository';
 import { RestaurantTableRepository } from './repositories/restaurant.table.repository';
 import { RestaurantTableSchema, RestaurantTable } from './models/restaurant.table.model';
+import { UserRepository } from './repositories/user.repository';
+import { User, UserSchema } from './models/user.model';
 
 @Module({
   imports: [
@@ -20,7 +22,8 @@ import { RestaurantTableSchema, RestaurantTable } from './models/restaurant.tabl
     NestMongooseModule.forFeature([{ name: Ingredient.name, schema: IngredientSchema }]),
     NestMongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),
     NestMongooseModule.forFeature([{ name: Stock.name, schema: StockSchema }]),
-    NestMongooseModule.forFeature([{ name: RestaurantTable.name, schema: RestaurantTableSchema }])
+    NestMongooseModule.forFeature([{ name: RestaurantTable.name, schema: RestaurantTableSchema }]),
+    NestMongooseModule.forFeature([{ name: User.name, schema: UserSchema }])
   ],
   providers: [
     CardRepository,
@@ -28,7 +31,8 @@ import { RestaurantTableSchema, RestaurantTable } from './models/restaurant.tabl
     IngredientRepository,
     OrderRepository,
     StockRepository,
-    RestaurantTableRepository
+    RestaurantTableRepository,
+    UserRepository
   ],
   exports: [
     CardRepository,
@@ -36,7 +40,8 @@ import { RestaurantTableSchema, RestaurantTable } from './models/restaurant.tabl
     IngredientRepository,
     OrderRepository,
     StockRepository,
-    RestaurantTableRepository
+    RestaurantTableRepository,
+    UserRepository
   ],
 })
 export class MongoModule {}

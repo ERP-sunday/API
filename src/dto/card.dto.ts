@@ -1,6 +1,6 @@
 import { IsString, IsBoolean, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { DishDTO } from './dish.dto';
+import { DishDTO } from './creation/dish.dto';
 
 export class CardDTO {
     @IsString()

@@ -1,23 +1,38 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { DishDTO } from 'src/dto/dish.dto';
+import { Types } from 'mongoose';
+import { DishDTO, DishIngredientDTO } from 'src/dto/creation/dish.dto';
 import { Dish } from 'src/mongo/models/dish.model';
 import { DataType } from 'src/mongo/repositories/base.repository';
 import { DishRepository } from 'src/mongo/repositories/dish.repository';
+import { IngredientRepository } from 'src/mongo/repositories/ingredient.repository';
 
 @Injectable()
 export class DishService {
   constructor(
-    private readonly dishRepository: DishRepository
+    private readonly dishRepository: DishRepository,
+    private readonly ingredientRepository: IngredientRepository
   ) {}
 
   async createOne(dishData: DishDTO): Promise<Dish> {
     try {
+      for (const ingredient of dishData.ingredients) {
+        const isExists = await this.ingredientRepository.findOneById(ingredient.ingredientId);
+
+        if (isExists == null) {
+          throw new BadRequestException(`Ingredient with ID ${ingredient.ingredientId} does not exist.`);
+        }
+      }
+
+      const ingredientsWithObjectId = dishData.ingredients.map((ingredient: DishIngredientDTO) => ({
+        ...ingredient,
+        ingredientId: new Types.ObjectId(ingredient.ingredientId),
+      }));
+
       const response = await this.dishRepository.insert(
         {
           name: dishData.name,
-          ingredients: dishData.ingredients,
+          ingredients: ingredientsWithObjectId,
           price: dishData.price,
-          image: dishData.image,
           description: dishData.description,
           category: dishData.category,
           timeCook: dishData.timeCook,
@@ -37,7 +52,7 @@ export class DishService {
 
   async findAll(): Promise<Dish[]> {
     try {
-      const response = await this.dishRepository.findAll()
+      const response = await this.dishRepository.findAll({ populate: ["ingredients.ingredientId"] })
 
       return response as Dish[]
     } catch (e) {
@@ -46,9 +61,13 @@ export class DishService {
     }
   }
 
+  async findTop20Ingredients() {
+    return await this.dishRepository.findTop20Ingredients();
+  }
+
   async findOne(id: string): Promise<Dish> {
     try {
-      const response = await this.dishRepository.findOneBy({ _id: id })
+      const response = await this.dishRepository.findOneBy({ _id: id }, { populate: ["ingredients.ingredientId"] })
 
       if (!response) {
         throw new NotFoundException(`Card with ID ${id} not found`);

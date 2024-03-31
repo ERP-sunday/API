@@ -1,14 +1,25 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { DishResponseDTO } from 'src/dto/response/dish.response.dto';
 import { DateBeautifier } from 'src/utils/date.beautifier';
+import { Ingredient } from './ingredient.model';
 
 export enum DishCategory {
     MEAT = "MEAT"
 }
 
+export enum DishIngredientUnity {
+    MILLILITRE = "MILLILITRE",
+    CENTILITRE = "CENTILITRE"
+}
+
+@Schema()
 class DishIngredient {
-    @Prop([{ type: Types.ObjectId, ref: 'Ingredient', required: true }])
-    ingredientId: string
+    @Prop({ type: Types.ObjectId, ref: 'Ingredient', required: true })
+    ingredientId: Types.ObjectId
+
+    @Prop({ required: true })
+    unity: DishIngredientUnity
 
     @Prop({ type: Number, required: true })
     quantity: number
@@ -24,9 +35,6 @@ export class Dish extends Document {
 
     @Prop({ type: Number, required: true })
     price: number
-
-    @Prop({ type: String, required: true })
-    image: string
 
     @Prop({ type: String, trim: true, required: true })
     description: string
