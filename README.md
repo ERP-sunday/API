@@ -1,3 +1,6 @@
+>[!IMPORTANT]
+Pour accéder au Swagger de l'API, il faut se rendre sur le lien: http://localhost:3000/api#/
+
 ## Clone
 
 ```bash
