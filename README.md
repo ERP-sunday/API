@@ -15,13 +15,13 @@ Puis, à la racine du projet, ajouter le fichier **.env**
 ## Installation
 
 ```bash
-$ npm install
+npm install
 ```
 
 ## Load Fixtures
 
 ```bash
-$ npm run load-fixtures
+npm run load-fixtures
 ```
 
 ## Lancer l'app
