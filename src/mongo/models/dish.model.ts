@@ -1,8 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { DishResponseDTO } from 'src/dto/response/dish.response.dto';
-import { DateBeautifier } from 'src/utils/date.beautifier';
-import { Ingredient } from './ingredient.model';
+import DateBeautifier from '../../utils/date.beautifier';
 
 export enum DishCategory {
     MEAT = "MEAT"

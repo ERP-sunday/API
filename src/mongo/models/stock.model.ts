@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { DateBeautifier } from 'src/utils/date.beautifier';
+import DateBeautifier from '../../utils/date.beautifier';
 
 class IngredientItem {
     @Prop({ type: Types.ObjectId, ref: 'Ingredient', required: true })
