@@ -5,10 +5,7 @@ import config from '../configs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [
-    MongooseModule.forRoot(config().mongoUrl),
-    MongoModule
-  ],
+  imports: [MongooseModule.forRoot(config().mongoUrl), MongoModule],
   providers: [FixturesService],
 })
 export class FixturesModule {}

@@ -12,26 +12,26 @@ export class DishRepository extends BaseRepository<Dish> {
 
   async findTop20Ingredients() {
     return this.Model.aggregate([
-      { $unwind: "$ingredients" },
+      { $unwind: '$ingredients' },
       {
         $lookup: {
-          from: "ingredients",
-          localField: "ingredients.ingredientId",
-          foreignField: "_id",
-          as: "ingredientDetails"
-        }
+          from: 'ingredients',
+          localField: 'ingredients.ingredientId',
+          foreignField: '_id',
+          as: 'ingredientDetails',
+        },
       },
-      { $unwind: "$ingredientDetails" },
-      { 
+      { $unwind: '$ingredientDetails' },
+      {
         $group: {
-          _id: "$ingredientDetails._id", // Grouper par _id de l'ingrédient
-          name: { $first: "$ingredientDetails.name" }, // Conserver le premier nom trouvé pour cet _id (ils devraient tous être les mêmes)
-          totalUsage: { $sum: 1 } // Compter le nombre d'utilisations
-        } 
+          _id: '$ingredientDetails._id', // Grouper par _id de l'ingrédient
+          name: { $first: '$ingredientDetails.name' }, // Conserver le premier nom trouvé pour cet _id (ils devraient tous être les mêmes)
+          totalUsage: { $sum: 1 }, // Compter le nombre d'utilisations
+        },
       },
       { $sort: { totalUsage: -1 } }, // Trier par utilisation décroissante
       { $limit: 20 }, // Limiter aux 20 premiers
-      { $project: { _id: 1, name: "$name" } } // Projet pour transformer le nom en majuscules et inclure _id
+      { $project: { _id: 1, name: '$name' } }, // Projet pour transformer le nom en majuscules et inclure _id
     ]);
   }
 }

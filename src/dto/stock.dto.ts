@@ -1,30 +1,36 @@
-import { IsArray, ValidateNested, IsString, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  ValidateNested,
+  IsString,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class StockDTO {
-    @IsString()
-    name: string;
+  @IsString()
+  name: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => IngredientItemDTO)
-    ingredients: IngredientItemDTO[];
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => IngredientItemDTO)
+  ingredients: IngredientItemDTO[];
 }
 
 export class IngredientItemDTO {
-    @IsString()
-    ingredientId: string;
+  @IsString()
+  ingredientId: string;
 
-    @IsNumber()
-    currentQuantity: number;
+  @IsNumber()
+  currentQuantity: number;
 
-    @IsNumber()
-    minimalQuantity: number;
+  @IsNumber()
+  minimalQuantity: number;
 
-    @IsString()
-    dateAddedToStock: string;
+  @IsString()
+  dateAddedToStock: string;
 
-    @IsOptional()
-    @IsString()
-    dateLastModified?: string;
+  @IsOptional()
+  @IsString()
+  dateLastModified?: string;
 }

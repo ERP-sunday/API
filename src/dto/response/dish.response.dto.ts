@@ -1,43 +1,50 @@
-import { DishCategory, DishIngredientUnity } from "src/mongo/models/dish.model";
-import { IsString, IsNumber, IsBoolean, IsOptional, ValidateNested, IsArray } from "class-validator";
-import { Type } from "class-transformer";
-import { IngredientResponseDTO } from "./ingredient.response.dto";
+import { DishCategory, DishIngredientUnity } from 'src/mongo/models/dish.model';
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  ValidateNested,
+  IsArray,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { IngredientResponseDTO } from './ingredient.response.dto';
 
 export class DishResponseDTO {
-    @IsString()
-    _id: string;
+  @IsString()
+  _id: string;
 
-    @IsString()
-    name: string;
+  @IsString()
+  name: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => DishIngredientResponseDTO)
-    ingredients: DishIngredientResponseDTO[];
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => DishIngredientResponseDTO)
+  ingredients: DishIngredientResponseDTO[];
 
-    @IsNumber()
-    price: number;
+  @IsNumber()
+  price: number;
 
-    @IsString()
-    description: string;
+  @IsString()
+  description: string;
 
-    @IsString()
-    category: DishCategory;
+  @IsString()
+  category: DishCategory;
 
-    @IsOptional()
-    @IsNumber()
-    timeCook?: number;
+  @IsOptional()
+  @IsNumber()
+  timeCook?: number;
 
-    @IsBoolean()
-    isAvailable: boolean;
+  @IsBoolean()
+  isAvailable: boolean;
 }
 
 export class DishIngredientResponseDTO {
-    ingredientRef: IngredientResponseDTO;
+  ingredientRef: IngredientResponseDTO;
 
-    @IsString()
-    unity: DishIngredientUnity
+  @IsString()
+  unity: DishIngredientUnity;
 
-    @IsNumber()
-    quantity: number;
+  @IsNumber()
+  quantity: number;
 }

@@ -1,7 +1,6 @@
-import { IsString, IsArray, IsOptional, IsNumber } from 'class-validator';
-import { IngredientUnity } from "src/mongo/models/ingredient.model";
+import { IsString } from 'class-validator';
 
 export class IngredientDTO {
-    @IsString()
-    name: string;
+  @IsString()
+  name: string;
 }

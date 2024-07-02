@@ -5,8 +5,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe())
-  app.enableCors() // TODO: A supprimer peut être plus tard
+  app.useGlobalPipes(new ValidationPipe());
+  app.enableCors(); // TODO: A supprimer peut être plus tard
 
   const config = new DocumentBuilder()
     .setTitle('PFE Api')
