@@ -1,6 +1,6 @@
-import { IsNumber } from "class-validator"
+import { IsNumber } from 'class-validator';
 
 export class RestaurantTableDTO {
-    @IsNumber()
-    number: number
+  @IsNumber()
+  number: number;
 }

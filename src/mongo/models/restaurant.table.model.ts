@@ -3,8 +3,9 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class RestaurantTable extends Document {
-    @Prop({ type: Number, required: true })
-    number: number
+  @Prop({ type: Number, required: true })
+  number: number;
 }
 
-export const RestaurantTableSchema = SchemaFactory.createForClass(RestaurantTable);
+export const RestaurantTableSchema =
+  SchemaFactory.createForClass(RestaurantTable);

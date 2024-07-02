@@ -18,7 +18,7 @@ import { UserModule } from './modules/user/user.module';
     OrderModule,
     StockModule,
     RestaurantTableModule,
-    UserModule
-  ]
+    UserModule,
+  ],
 })
 export class AppModule {}

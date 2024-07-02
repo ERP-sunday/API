@@ -22,7 +22,7 @@ export class UserService {
     try {
       const { email, password, firstname, lastname } = parameters;
       const data = JSON.stringify({ email, password, returnSecureToken: true });
-      
+
       const result = await axios({
         method: 'post',
         url: `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${config().apiKey}`,
@@ -32,17 +32,17 @@ export class UserService {
 
       const { localId: firebaseId } = result.data;
 
-      const savedUser = await this.userRepository.insert({
-          email: email,
-          firstname: firstname,
-          lastname: lastname,
-          firebaseId: firebaseId,
-      }) as User
+      const savedUser = (await this.userRepository.insert({
+        email: email,
+        firstname: firstname,
+        lastname: lastname,
+        firebaseId: firebaseId,
+      })) as User;
 
-      return await this.userRepository.findOneById(savedUser._id)
+      return await this.userRepository.findOneById(savedUser._id);
     } catch (e) {
       console.log(e);
       throw new BadRequestException();
     }
-  }
+  };
 }

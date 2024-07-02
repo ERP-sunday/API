@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import app from 'src/configs/firebase.config'
+import app from 'src/configs/firebase.config';
 import { UserRepository } from 'src/mongo/repositories/user.repository';
 
 @Injectable()

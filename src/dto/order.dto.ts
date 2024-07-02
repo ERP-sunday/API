@@ -1,30 +1,38 @@
-import { IsString, IsArray, IsEnum, IsNumber, IsOptional, ValidateNested, IsBoolean } from 'class-validator';
-import { OrderStatus } from "src/mongo/models/order.model";
+import {
+  IsString,
+  IsArray,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  ValidateNested,
+  IsBoolean,
+} from 'class-validator';
+import { OrderStatus } from 'src/mongo/models/order.model';
 import { Type } from 'class-transformer';
 
 export class OrderDTO {
-    @IsString()
-    tableNumberId: string;
+  @IsString()
+  tableNumberId: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => DishOrderDTO)
-    dishes: DishOrderDTO[];
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => DishOrderDTO)
+  dishes: DishOrderDTO[];
 
-    @IsEnum(OrderStatus)
-    status: OrderStatus;
+  @IsEnum(OrderStatus)
+  status: OrderStatus;
 
-    @IsNumber()
-    totalPrice: number;
+  @IsNumber()
+  totalPrice: number;
 
-    @IsNumber()
-    tips: number;
+  @IsNumber()
+  tips: number;
 }
 
 export class DishOrderDTO {
-    @IsString()
-    dishId: string;
+  @IsString()
+  dishId: string;
 
-    @IsBoolean()
-    isPaid: boolean;
+  @IsBoolean()
+  isPaid: boolean;
 }
