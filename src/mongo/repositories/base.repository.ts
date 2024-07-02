@@ -14,7 +14,7 @@ class BaseRepository<T extends Document> {
     this.Model = model;
   }
 
-  async insert(data: FilterQuery<T>): Promise<Document<unknown, {}, T>> {
+  async insert(data: FilterQuery<T>): Promise<Document<unknown, object, T>> {
     try {
       const newObject = new this.Model(data);
       await newObject.validate();
@@ -41,7 +41,6 @@ class BaseRepository<T extends Document> {
         )
         .populate((params?.populate || []).join(' '));
 
-      // @ts-ignore
       return finedObject.toObject({ versionKey: false }) || null;
     } catch (e) {
       return null;
@@ -49,7 +48,7 @@ class BaseRepository<T extends Document> {
   }
 
   async findOneById(_id: string, params?: AdditionalParams): Promise<T | null> {
-    // @ts-ignore
+    // @ts-expect-error Object with id
     return this.findOneBy({ _id }, params);
   }
 
@@ -66,7 +65,7 @@ class BaseRepository<T extends Document> {
     set: DataType,
   ): Promise<boolean> {
     try {
-      const { _id, ...data } = set;
+      const { ...data } = set;
       const update = await this.Model.updateOne(condition, {
         $set: data as UpdateQuery<T>,
         $inc: { __v: 1 },
@@ -102,7 +101,6 @@ class BaseRepository<T extends Document> {
 
   async pushArray(condition: FilterQuery<T>, data: DataType): Promise<boolean> {
     try {
-      // @ts-ignore
       const update = await this.Model.updateOne(condition, {
         $push: data,
         $inc: { __v: 1 },
@@ -115,7 +113,6 @@ class BaseRepository<T extends Document> {
 
   async pullArray(condition: FilterQuery<T>, data: DataType): Promise<boolean> {
     try {
-      // @ts-ignore
       const update = await this.Model.updateOne(condition, {
         $pull: data,
         $inc: { __v: 1 },

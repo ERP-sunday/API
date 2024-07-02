@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsOptional, IsNumber } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class IngredientResponseDTO {
   @IsString()

@@ -14,7 +14,7 @@ export class UserService {
     userId: string,
     parameters: UserUpdateDTO,
   ): Promise<User> => {
-    // @ts-ignore
+    // @ts-expect-error parameters is a DataType
     return this.userRepository.updateOneBy({ _id: userId }, parameters);
   };
 
