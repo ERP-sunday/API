@@ -23,7 +23,6 @@ import { Response } from 'src/utils/response';
 import { Dish } from 'src/mongo/models/dish.model';
 import { DishDTO } from 'src/dto/creation/dish.dto';
 import { DishResponseDTO } from 'src/dto/response/dish.response.dto';
-import { FirebaseTokenGuard } from 'src/guards/firebase-token.guard';
 import { DataType } from 'src/mongo/repositories/base.repository';
 
 @ApiTags('Dishes')
@@ -32,7 +31,7 @@ export class DishController {
   constructor(private readonly dishService: DishService) {}
 
   @Get('/top-ingredients')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get top 20 ingredients used in dishes' })
   @ApiResponse({ status: 200, type: Dish, isArray: true })
@@ -44,7 +43,7 @@ export class DishController {
   }
 
   @Post()
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new dish' })
   @ApiResponse({
@@ -63,7 +62,7 @@ export class DishController {
   }
 
   @Get()
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all dishes' })
   @ApiResponse({
@@ -83,7 +82,7 @@ export class DishController {
   }
 
   @Get(':id')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find one dish by ID' })
   @ApiResponse({
@@ -100,7 +99,7 @@ export class DishController {
   }
 
   @Put(':id')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a dish by ID' })
   @ApiResponse({
@@ -121,7 +120,7 @@ export class DishController {
   }
 
   @Delete(':id')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a dish by ID' })
   @ApiResponse({
