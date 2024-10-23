@@ -8,6 +8,8 @@ import { OrderModule } from './modules/order/order.module';
 import { StockModule } from './modules/stock/stock.module';
 import { RestaurantTableModule } from './modules/table/restaurant.table.module';
 import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { UserModule } from './modules/user/user.module';
     StockModule,
     RestaurantTableModule,
     UserModule,
+    AuthModule
   ],
+  providers: [AuthGuard]
 })
 export class AppModule {}

@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { FirebaseTokenGuard } from 'src/guards/firebase-token.guard';
+
 import {
   ApiSecurity,
   ApiTags,
@@ -28,23 +28,8 @@ import { UserUpdateDTO } from 'src/dto/user.update.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({
-    status: 201,
-    description: 'The user has been successfully created.',
-    type: UserDTO,
-  })
-  @ApiBody({ type: UserDTO })
-  async createUser(@Body() body: UserDTO) {
-    const response = await this.userService.registerUser(body);
-
-    return { error: '', data: response };
-  }
-
   @Get('me')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @ApiSecurity('Bearer')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get current user' })
@@ -60,7 +45,7 @@ export class UserController {
   }
 
   @Patch(':userId')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @ApiSecurity('Bearer')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a user' })

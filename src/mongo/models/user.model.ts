@@ -1,14 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import DateBeautifier from '../../utils/date.beautifier';
+import { Exclude } from 'class-transformer';
 
 @Schema()
 export class User extends Document {
   @Prop({ required: true, unique: true, trim: true })
   email: string;
 
-  @Prop({ select: false, required: true })
-  firebaseId: string;
+  @Prop({ required: true })
+  @Exclude()
+  password: string;
 
   @Prop({ required: true, trim: true })
   firstname: string;

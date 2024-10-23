@@ -16,14 +16,13 @@ import { IngredientDTO } from 'src/dto/creation/ingredient.dto';
 import { Ingredient } from 'src/mongo/models/ingredient.model';
 import { Response } from 'src/utils/response';
 import { DataType } from 'src/mongo/repositories/base.repository';
-import { FirebaseTokenGuard } from 'src/guards/firebase-token.guard';
 
 @Controller('ingredients')
 export class IngredientController {
   constructor(private readonly ingredientService: IngredientService) {}
 
   @Post()
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.CREATED)
   async createOne(
     @Body() ingredientData: IngredientDTO,
@@ -34,7 +33,7 @@ export class IngredientController {
   }
 
   @Get('/search')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   async searchIngredients(
     @Query('name') name: string,
   ): Promise<Response<Ingredient[]>> {
@@ -44,7 +43,7 @@ export class IngredientController {
   }
 
   @Get()
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.OK)
   async findAll(): Promise<Response<Ingredient[]>> {
     const response = await this.ingredientService.findAll();
@@ -53,7 +52,7 @@ export class IngredientController {
   }
 
   @Get(':id')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.OK)
   async finOne(@Param() params: any): Promise<Response<Ingredient>> {
     const response = await this.ingredientService.findOne(params.id);
@@ -62,7 +61,7 @@ export class IngredientController {
   }
 
   @Put(':id')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.OK)
   async updateOne(
     @Param() params: any,
@@ -77,7 +76,7 @@ export class IngredientController {
   }
 
   @Delete(':id')
-  @UseGuards(FirebaseTokenGuard)
+  @UseGuards()
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteOne(@Param() params: any) {
     await this.ingredientService.deleteOne(params.id);

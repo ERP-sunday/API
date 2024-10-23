@@ -37,7 +37,7 @@ import { UserRepository } from './repositories/user.repository';
     OrderRepository,
     StockRepository,
     RestaurantTableRepository,
-    UserRepository,
+    UserRepository
   ],
   exports: [
     NestMongooseModule,
@@ -47,7 +47,7 @@ import { UserRepository } from './repositories/user.repository';
     OrderRepository,
     StockRepository,
     RestaurantTableRepository,
-    UserRepository,
+    UserRepository
   ],
 })
 export class MongoModule {}

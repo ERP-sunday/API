@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 import DateBeautifier from '../../utils/date.beautifier';
 
 export enum DishCategory {
-  MEAT = 'MEAT',
+  MEAT = 'MEAT'
 }
 
 export enum DishIngredientUnity {

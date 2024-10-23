@@ -2,22 +2,29 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
+import config from './configs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors(); // TODO: A supprimer peut être plus tard
 
-  const config = new DocumentBuilder()
+  app.enableCors({
+    origin: 'http://localhost:3000', // TODO: A supprimer peut être plus tard
+    credentials: true,
+  });
+  app.use(cookieParser(config().cookieSecretKey));
+
+  const swaggerConfig = new DocumentBuilder()
     .setTitle('PFE Api')
     .setDescription('The PFE api description')
     .setVersion('1.0')
     .addTag('pfe')
     .addBearerAuth()
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000);
+  await app.listen(4000);
 }
 bootstrap();
