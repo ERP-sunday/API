@@ -8,7 +8,11 @@ import config from './configs/config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors(); // TODO: A supprimer peut être plus tard
+
+  app.enableCors({
+    origin: 'http://localhost:3000', // TODO: A supprimer peut être plus tard
+    credentials: true,
+  });
   app.use(cookieParser(config().cookieSecretKey));
 
   const swaggerConfig = new DocumentBuilder()

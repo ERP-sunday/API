@@ -1,14 +1,9 @@
 import {
     Body,
     Controller,
-    Delete,
     Get,
     HttpCode,
-    HttpStatus,
-    Param,
     Post,
-    Put,
-    Query,
     Res,
     UnauthorizedException,
     UseGuards,
@@ -24,7 +19,7 @@ import { AuthGuard } from 'src/guards/auth.guard';
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
-    @UseGuards(AuthGuard)
+    @HttpCode(200)
     @Post("/login")
     async login(@Body() authDto: AuthDTO, @Res({ passthrough: true }) response: Response) {
         const user = await this.authService.findOne(authDto.email)
@@ -50,5 +45,12 @@ export class AuthController {
         const { password, ...userWithoutPassword } = user;
 
         return { error: null, data: userWithoutPassword }
+    }
+
+    @HttpCode(200)
+    @UseGuards(AuthGuard)
+    @Get('/validate-cookie')
+    async validateCookie() {    
+        return { valid: true };
     }
 }
