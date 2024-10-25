@@ -3,11 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UserDTO } from 'src/common/dto/user.dto';
+import { UserDTO } from 'src/modules/user/dto/user.dto';
 import { User } from 'src/modules/user/models/user.model';
 import { UserRepository } from 'src/modules/user/repositories/user.repository';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
+import { RegisterDto } from "../dto/auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -49,7 +50,7 @@ export class AuthService {
     });
   }
 
-  async createUser(parameters: UserDTO): Promise<User> {
+  async createUser(parameters: RegisterDto): Promise<User> {
     try {
       const { email, password, firstname, lastname } = parameters;
 

@@ -18,8 +18,8 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
-import { UserDTO } from 'src/common/dto/user.dto';
-import { UserUpdateDTO } from 'src/common/dto/user.update.dto';
+import { UserDTO } from 'src/modules/user/dto/user.dto';
+import { UserUpdateDTO } from 'src/modules/user/dto/user.update.dto';
 
 @Controller('users')
 @ApiTags('Users')
