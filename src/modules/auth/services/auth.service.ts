@@ -3,12 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UserDTO } from 'src/modules/user/dto/user.dto';
 import { User } from 'src/modules/user/models/user.model';
 import { UserRepository } from 'src/modules/user/repositories/user.repository';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
-import { RegisterDto } from "../dto/auth.dto";
+import { RegisterDto } from 'src/modules/auth/dto/auth.dto';
 
 @Injectable()
 export class AuthService {
