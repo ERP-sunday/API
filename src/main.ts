@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import config from './configs/config';
+import { HttpExceptionFilter } from 'src/common/filters/http.exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,15 +16,21 @@ async function bootstrap() {
   });
   app.use(cookieParser(config().cookieSecretKey));
 
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+  );
+  app.setGlobalPrefix('api');
+  app.useGlobalFilters(new HttpExceptionFilter());
+
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('PFE Api')
-    .setDescription('The PFE api description')
+    .setTitle('Tabbeo Api')
+    .setDescription('The Tabbeo api description')
     .setVersion('1.0')
     .addTag('pfe')
-    .addBearerAuth()
+    .addCookieAuth('jwt')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/documentation', app, document);
 
   await app.listen(4000);
 }
