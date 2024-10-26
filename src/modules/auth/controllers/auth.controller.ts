@@ -18,7 +18,10 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { User } from 'src/modules/user/models/user.model';
 
 @ApiTags('auth')
-@Controller('auth')
+@Controller({
+  path: 'auth',
+  version: '1',
+})
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
