@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import config from './configs/config';
@@ -21,6 +21,10 @@ async function bootstrap() {
   );
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Tabbeo Api')
