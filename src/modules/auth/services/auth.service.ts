@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { User } from 'src/modules/user/models/user.model';
 import { UserRepository } from 'src/modules/user/repositories/user.repository';
-import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { RegisterDto } from 'src/modules/auth/dto/auth.dto';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
