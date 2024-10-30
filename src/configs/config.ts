@@ -6,6 +6,5 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
 export default () => ({
   port: process.env.PORT,
   mongoUrl: process.env.MONGO_URL,
-  apiKey: process.env.API_KEY,
   cookieSecretKey: process.env.COOOKIE_SECRET_KEY,
 });
