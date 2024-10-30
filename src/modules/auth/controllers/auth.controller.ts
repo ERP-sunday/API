@@ -12,7 +12,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from 'src/modules/auth/services/auth.service';
 import { LoginDto, RegisterDto } from 'src/modules/auth/dto/auth.dto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Response } from 'express';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { User } from 'src/modules/user/models/user.model';

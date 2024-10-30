@@ -7,6 +7,7 @@ import config from './configs/config';
 import { HttpExceptionFilter } from 'src/common/filters/http.exception.filter';
 
 async function bootstrap() {
+  const port = process.env.PORT || 4000;
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
 
@@ -36,6 +37,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/documentation', app, document);
 
-  await app.listen(4000);
+  await app.listen(port);
 }
 bootstrap();
