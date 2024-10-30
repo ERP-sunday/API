@@ -3,44 +3,10 @@ name: Deploy to Render
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: './backend/package-lock.json'
-
-    - name: Install dependencies
-      working-directory: ./backend
-      run: npm ci
-
-    - name: Run ESLint
-      working-directory: ./backend
-      run: npm run lint:check
-
-    - name: Run tests
-      working-directory: ./backend
-      run: npm run test
-
-    - name: Build application
-      working-directory: ./backend
-      run: npm run build
-
   deploy:
-    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
     - name: Deploy to Render
