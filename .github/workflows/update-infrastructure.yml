@@ -1,0 +1,39 @@
+name: Update Infrastructure Submodules
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  update-submodules:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Cloner le dépôt infrastructure avec les sous-modules
+      - name: Checkout infrastructure repository with submodules
+        uses: actions/checkout@v2
+        with:
+          repository: ERP-sunday/infrastructure
+          path: infrastructure
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Utilisation du PAT si nécessaire
+          ref: main
+          submodules: true  # Initialiser les sous-modules automatiquement
+
+      # Configurer l'identité Git pour les commits
+      - name: Configure Git
+        run: |
+          git config --global user.email "pierre_gourgouillon@hotmail.com"
+          git config --global user.name "Pierre"
+
+      # Mettre à jour les sous-modules pour récupérer les derniers commits de leurs branches par défaut
+      - name: Update submodules to latest commit
+        run: |
+          cd infrastructure
+          git submodule update --remote --merge
+          git add .
+          git commit --amend -m "Update backend submodules to latest commit" || echo "No changes to commit"
+          git push origin main --force
