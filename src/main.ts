@@ -5,14 +5,16 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import config from './configs/config';
 import { HttpExceptionFilter } from 'src/common/filters/http.exception.filter';
+import * as process from 'process';
 
 async function bootstrap() {
   const port = process.env.PORT || 4000;
+  const frontUrl = process.env.FRONT_URL || 'http://localhost:3000';
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
 
   app.enableCors({
-    origin: 'http://localhost:3000', // TODO: A supprimer peut être plus tard
+    origin: frontUrl,
     credentials: true,
   });
   app.use(cookieParser(config().cookieSecretKey));
