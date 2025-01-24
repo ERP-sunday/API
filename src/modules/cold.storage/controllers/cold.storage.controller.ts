@@ -7,7 +7,6 @@ import {
   Res, UseGuards
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { Response } from 'express';
 import { ColdStorageService } from '../services/cold.storage.service';
 import { ColdStorageDTO } from 'src/modules/cold.storage/dto/cold.storage.dto';
 import { AuthGuard } from 'src/common/guards/auth.guard';
