@@ -18,6 +18,9 @@ export class User extends Document {
   @Prop({ required: true, trim: true })
   lastname: string;
 
+  @Prop({ default: null })
+  refreshToken: string;
+
   @Prop({
     type: String,
     required: true,

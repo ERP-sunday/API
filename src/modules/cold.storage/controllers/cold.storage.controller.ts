@@ -4,15 +4,15 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Res, UseGuards
-} from "@nestjs/common";
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ColdStorageService } from '../services/cold.storage.service';
 import { ColdStorageDTO } from 'src/modules/cold.storage/dto/cold.storage.dto';
-import { AuthGuard } from 'src/common/guards/auth.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 
 @ApiTags('cold-storage')
-@UseGuards(AuthGuard)
+@UseGuards(JwtAuthGuard)
 @Controller({
   path: 'cold-storage',
   version: '1',

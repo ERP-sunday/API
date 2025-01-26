@@ -28,3 +28,9 @@ export class RegisterDto {
   @IsString()
   password: string;
 }
+
+export class RefreshJWTDto {
+  @ApiProperty()
+  @IsString()
+  refreshToken: string;
+}
