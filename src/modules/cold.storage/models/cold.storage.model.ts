@@ -1,25 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import DateBeautifier from 'src/common/utils/date.beautifier';
-import { Exclude } from 'class-transformer';
+import { ColdStorageType } from 'src/common/utils/types/cold.storage.type';
 
 @Schema()
-export class User extends Document {
+export class ColdStorage extends Document {
   @Prop({ required: true, unique: true, trim: true })
-  email: string;
+  name: string;
 
-  @Prop({ required: true })
-  @Exclude()
-  password: string;
-
-  @Prop({ required: true, trim: true })
-  firstname: string;
-
-  @Prop({ required: true, trim: true })
-  lastname: string;
-
-  @Prop({ default: null })
-  refreshToken: string;
+  @Prop({ enum: ColdStorageType, required: true })
+  type: ColdStorageType;
 
   @Prop({
     type: String,
@@ -32,14 +22,14 @@ export class User extends Document {
   dateLastModified?: string;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const ColdStorageSchema = SchemaFactory.createForClass(ColdStorage);
 
-UserSchema.pre('updateOne', function (next) {
+ColdStorageSchema.pre('updateOne', function (next) {
   this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
   next();
 });
 
-UserSchema.pre('findOneAndUpdate', function (next) {
+ColdStorageSchema.pre('findOneAndUpdate', function (next) {
   this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
   next();
 });

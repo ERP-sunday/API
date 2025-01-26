@@ -2,16 +2,21 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { User } from 'src/modules/user/models/user.model';
 import { UserRepository } from 'src/modules/user/repositories/user.repository';
-import { Response } from 'express';
 import { RegisterDto } from 'src/modules/auth/dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
+import config from 'src/configs/config';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async findOne(email: string): Promise<User> {
     const response = await this.userRepository.findOneBy({
@@ -25,28 +30,50 @@ export class AuthService {
     return response as User;
   }
 
-  async verifyIfUserIdExist(userId: string): Promise<boolean> {
-    try {
-      const user = await this.userRepository.findOneById(userId);
+  async findOneById(userId): Promise<User> {
+    const response = await this.userRepository.findOneById(userId);
 
-      if (!user) {
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      return false;
+    if (!response) {
+      throw new NotFoundException(`User with _id ${userId} not found`);
     }
+
+    return response as User;
   }
 
-  async cookieGeneration(response: Response, userId: string) {
-    response.cookie('jwt', userId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV == 'production',
-      maxAge: 7200000, // Cookie valide pendant 2 heure,
-      signed: true,
-      sameSite: 'strict',
+  async generateRefreshToken(userId: string): Promise<string> {
+    const payload = { sub: userId };
+    return this.jwtService.signAsync(payload, {
+      secret: config().jwtRefreshToken,
+      expiresIn: '7d', // Durée de validité plus longue pour le refresh token
     });
+  }
+
+  async generateJwt(userId: string): Promise<string> {
+    const payload = { sub: userId };
+    return this.jwtService.signAsync(payload, {
+      expiresIn: config().jwtExpiration,
+    });
+  }
+
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<boolean> {
+    const hashedToken = await bcrypt.hash(refreshToken, 10);
+    return await this.userRepository.updateOneBy(
+      { _id: userId },
+      { refreshToken: hashedToken },
+    );
+  }
+
+  async verifyRefreshToken(refreshToken: string): Promise<any> {
+    try {
+      return this.jwtService.verifyAsync(refreshToken, {
+        secret: config().jwtRefreshToken,
+      });
+    } catch (err) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
   async createUser(parameters: RegisterDto): Promise<User> {

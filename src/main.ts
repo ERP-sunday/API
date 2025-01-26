@@ -2,22 +2,18 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as cookieParser from 'cookie-parser';
 import config from './configs/config';
 import { HttpExceptionFilter } from 'src/common/filters/http.exception.filter';
-import * as process from 'process';
 
 async function bootstrap() {
-  const port = process.env.PORT || 4000;
-  const frontUrl = process.env.FRONT_URL || 'http://localhost:3000';
+  const port = config().port;
+  const frontUrl = config().frontUrl;
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
 
   app.enableCors({
     origin: frontUrl,
     credentials: true,
   });
-  app.use(cookieParser(config().cookieSecretKey));
 
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
