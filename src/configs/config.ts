@@ -7,7 +7,6 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
 
 export default () => ({
   port: process.env.PORT || 4000,
-  frontUrl: process.env.FRONT_URL || 'http://localhost:3000',
   mongoUrl: process.env.MONGO_URL || 'defaultMongoUrl',
   jwtSecret: process.env.JWT_SECRET || 'defaultSecret',
   jwtRefreshToken: process.env.JWT_REFRESH_SECRET || 'defaultRefreshSecret',
