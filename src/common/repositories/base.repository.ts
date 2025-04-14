@@ -14,6 +14,16 @@ import {
 export class BaseRepository<T extends Document> {
   constructor(protected readonly model: Model<T>) {}
 
+  async insertMany(data: Partial<T>[]): Promise<T[]> {
+    try {
+      const insertedObjects = await this.model.insertMany(data);
+      return insertedObjects.map(obj => obj.toObject({ versionKey: false }));
+    } catch (error) {
+      console.error('Error inserting multiple documents:', error);
+      throw new BadRequestException('Failed to insert multiple documents');
+    }
+  }
+
   async insert(data: Partial<T>): Promise<T> {
     try {
       const newObject = new this.model(data);
@@ -138,6 +148,6 @@ export class BaseRepository<T extends Document> {
 // Types pour la configuration des requêtes
 export type AdditionalParams = {
   hiddenPropertiesToSelect?: string[];
-  populate?: string[];
+  populate?: { path: string; select?: string }[] | string[];
 };
 export type FilterQuery<T> = MongooseFilterQuery<T>;

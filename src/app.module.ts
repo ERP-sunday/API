@@ -6,6 +6,7 @@ import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt.auth.guard';
 import { ColdStorageModule } from './modules/cold.storage/cold.storage.module';
+import { ColdStorageTemperatureModule } from './modules/cold.storage.temperature/cold.storage.temperature.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ColdStorageModule } from './modules/cold.storage/cold.storage.module';
     UserModule,
     AuthModule,
     ColdStorageModule,
+    ColdStorageTemperatureModule,
   ],
   providers: [JwtAuthGuard],
 })
