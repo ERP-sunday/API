@@ -1,19 +1,18 @@
 import {
   Body,
-  Controller,
-  Get,
+  Controller, Get,
   HttpCode,
   HttpStatus, InternalServerErrorException,
   Post,
-  UnauthorizedException,
-  UseGuards
+  UnauthorizedException, UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from 'src/modules/auth/services/auth.service';
 import { LoginDto, RefreshJWTDto, RegisterDto } from "src/modules/auth/dto/auth.dto";
 import * as bcrypt from 'bcryptjs';
-import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { User } from 'src/modules/user/models/user.model';
+import {JwtAuthGuard} from "../../../common/guards/jwt.auth.guard";
+import { User as UserDecorator } from 'src/common/decorators/user.decorator';
 
 @ApiTags('auth')
 @Controller({
@@ -138,6 +137,19 @@ export class AuthController {
       token: {
         accessToken: newAccessToken,
       },
+    };
+  }
+
+  @Get('/me')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get current user' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Current user info' })
+  async getCurrentUser(@UserDecorator() user: User) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, refreshToken, ...userWithoutSensitiveInfo } = user;
+    return {
+      error: null,
+      data: userWithoutSensitiveInfo,
     };
   }
 }
