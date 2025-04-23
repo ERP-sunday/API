@@ -44,7 +44,7 @@ export class AuthService {
     const payload = { sub: userId };
     return this.jwtService.signAsync(payload, {
       secret: config().jwtRefreshToken,
-      expiresIn: '7d', // Durée de validité plus longue pour le refresh token
+      expiresIn: config().refreshJwtExpiration,
     });
   }
 

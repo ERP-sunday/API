@@ -11,4 +11,5 @@ export default () => ({
   jwtSecret: process.env.JWT_SECRET || 'defaultSecret',
   jwtRefreshToken: process.env.JWT_REFRESH_SECRET || 'defaultRefreshSecret',
   jwtExpiration: process.env.JWT_EXPIRATION || '15m',
+  refreshJwtExpiration: process.env.REFRESH_JWT_EXPIRATION || '7d'
 });
