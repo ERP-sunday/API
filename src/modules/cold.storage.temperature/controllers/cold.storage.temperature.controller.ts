@@ -41,10 +41,12 @@ export class ColdStorageTemperatureController {
     description: 'Something went wrong',
   })
   async findAll(
+      @Query('day') day?: string,
       @Query('month') month?: string,
       @Query('year') year?: string
   ) {
     const coldStorages = await this.coldStorageTemperatureService.getAllColdStorageTemperatures(
+        day ? parseInt(day, 10) : undefined,
         month ? parseInt(month, 10) : undefined,
         year ? parseInt(year, 10) : undefined
     );

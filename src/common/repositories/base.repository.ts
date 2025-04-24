@@ -1,7 +1,7 @@
 import {
   Document,
   FilterQuery as MongooseFilterQuery,
-  Model,
+  Model, Types,
   UpdateQuery,
 } from 'mongoose';
 import {
@@ -57,8 +57,25 @@ export class BaseRepository<T extends Document> {
     }
   }
 
+  async findOptionalBy(
+      condition: FilterQuery<T>,
+      params?: AdditionalParams,
+  ): Promise<T | null> {
+    const foundObject = await this.model
+        .findOne(condition)
+        .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
+        .populate(params?.populate || []);
+
+    return foundObject ? foundObject.toObject({ versionKey: false }) : null;
+  }
+
   async findOneById(_id: string, params?: AdditionalParams): Promise<T | null> {
-    return this.findOneBy({ _id } as FilterQuery<T>, params);
+    if (!Types.ObjectId.isValid(_id)) {
+      throw new BadRequestException(`Invalid ObjectId format: ${_id}`);
+    }
+
+    const objectId = new Types.ObjectId(_id);
+    return this.findOneBy({ _id: objectId } as FilterQuery<T>, params);
   }
 
   async deleteOneBy(condition: FilterQuery<T>): Promise<boolean> {
