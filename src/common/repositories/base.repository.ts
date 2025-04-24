@@ -1,7 +1,7 @@
 import {
   Document,
   FilterQuery as MongooseFilterQuery,
-  Model,
+  Model, Types,
   UpdateQuery,
 } from 'mongoose';
 import {
@@ -13,6 +13,16 @@ import {
 @Injectable()
 export class BaseRepository<T extends Document> {
   constructor(protected readonly model: Model<T>) {}
+
+  async insertMany(data: Partial<T>[]): Promise<T[]> {
+    try {
+      const insertedObjects = await this.model.insertMany(data);
+      return insertedObjects.map(obj => obj.toObject({ versionKey: false }));
+    } catch (error) {
+      console.error('Error inserting multiple documents:', error);
+      throw new BadRequestException('Failed to insert multiple documents');
+    }
+  }
 
   async insert(data: Partial<T>): Promise<T> {
     try {
@@ -47,8 +57,25 @@ export class BaseRepository<T extends Document> {
     }
   }
 
+  async findOptionalBy(
+      condition: FilterQuery<T>,
+      params?: AdditionalParams,
+  ): Promise<T | null> {
+    const foundObject = await this.model
+        .findOne(condition)
+        .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
+        .populate(params?.populate || []);
+
+    return foundObject ? foundObject.toObject({ versionKey: false }) : null;
+  }
+
   async findOneById(_id: string, params?: AdditionalParams): Promise<T | null> {
-    return this.findOneBy({ _id } as FilterQuery<T>, params);
+    if (!Types.ObjectId.isValid(_id)) {
+      throw new BadRequestException(`Invalid ObjectId format: ${_id}`);
+    }
+
+    const objectId = new Types.ObjectId(_id);
+    return this.findOneBy({ _id: objectId } as FilterQuery<T>, params);
   }
 
   async deleteOneBy(condition: FilterQuery<T>): Promise<boolean> {
@@ -138,6 +165,6 @@ export class BaseRepository<T extends Document> {
 // Types pour la configuration des requêtes
 export type AdditionalParams = {
   hiddenPropertiesToSelect?: string[];
-  populate?: string[];
+  populate?: { path: string; select?: string }[] | string[];
 };
 export type FilterQuery<T> = MongooseFilterQuery<T>;
