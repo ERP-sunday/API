@@ -11,6 +11,8 @@ import {
   ColdStorageTemperature,
   ColdStorageTemperatureSchema
 } from "src/modules/cold.storage.temperature/models/cold.storage.temperature.model";
+import {Fryer, FryerSchema} from "../../modules/fryer/models/fryer.model";
+import {FryerRepository} from "../../modules/fryer/repositories/fryer.repository";
 
 @Module({
   imports: [
@@ -21,8 +23,11 @@ import {
     NestMongooseModule.forFeature([
       { name: ColdStorageTemperature.name, schema: ColdStorageTemperatureSchema },
     ]),
+    NestMongooseModule.forFeature([
+      { name: Fryer.name, schema: FryerSchema },
+    ]),
   ],
-  providers: [UserRepository, ColdStorageRepository, ColdStorageTemperatureRepository],
-  exports: [NestMongooseModule, UserRepository, ColdStorageRepository, ColdStorageTemperatureRepository],
+  providers: [UserRepository, ColdStorageRepository, ColdStorageTemperatureRepository, FryerRepository],
+  exports: [NestMongooseModule, UserRepository, ColdStorageRepository, ColdStorageTemperatureRepository, FryerRepository],
 })
 export class MongoModule {}
