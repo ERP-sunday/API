@@ -8,6 +8,7 @@ import { JwtAuthGuard } from './common/guards/jwt.auth.guard';
 import { ColdStorageModule } from './modules/cold.storage/cold.storage.module';
 import { ColdStorageTemperatureModule } from './modules/cold.storage.temperature/cold.storage.temperature.module';
 import {FryerModule} from "./modules/fryer/fryer.module";
+import {OilCheckModule} from "./modules/oil.check/oil.check.module";
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import {FryerModule} from "./modules/fryer/fryer.module";
     AuthModule,
     ColdStorageModule,
     ColdStorageTemperatureModule,
-    FryerModule
+    FryerModule,
+    OilCheckModule
   ],
   providers: [JwtAuthGuard],
 })
