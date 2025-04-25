@@ -7,7 +7,7 @@ import {
     HttpStatus,
     Param,
     Patch,
-    Post,
+    Post, Query,
     UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
@@ -37,8 +37,16 @@ export class OilCheckController {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         description: 'Something went wrong',
     })
-    async findAll() {
-        const oilChecks = await this.oilCheckService.getAllOilChecks();
+    async findAll(
+        @Query('day') day?: string,
+        @Query('month') month?: string,
+        @Query('year') year?: string
+    ) {
+        const oilChecks = await this.oilCheckService.getAllOilChecks(
+            day ? parseInt(day, 10) : undefined,
+            month ? parseInt(month, 10) : undefined,
+            year ? parseInt(year, 10) : undefined
+        );
         return { error: null, data: oilChecks };
     }
 

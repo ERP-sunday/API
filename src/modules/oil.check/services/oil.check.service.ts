@@ -13,13 +13,45 @@ import {Types} from "mongoose";
 export class OilCheckService {
     constructor(private readonly oilCheckRepository: OilCheckRepository) {}
 
-    async getAllOilChecks(): Promise<OilCheck[]> {
+    async getAllOilChecks(day?: number, month?: number, year?: number): Promise<OilCheck[]> {
         try {
-            return await this.oilCheckRepository.findAll( {
+            const filter: any = {};
+
+            if (year !== undefined) {
+                if (isNaN(year) || year < 1970) {
+                    throw new BadRequestException('Invalid year format');
+                }
+
+                if (month !== undefined && day !== undefined) {
+                    if (isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
+                        throw new BadRequestException('Invalid day or month format');
+                    }
+
+                    const startDate = new Date(year, month - 1, day, 0, 0, 0);
+                    const endDate = new Date(year, month - 1, day, 23, 59, 59, 999);
+                    filter.date = { $gte: startDate, $lte: endDate };
+
+                } else if (month !== undefined) {
+                    if (isNaN(month) || month < 1 || month > 12) {
+                        throw new BadRequestException('Invalid month format');
+                    }
+
+                    const startDate = new Date(year, month - 1, 1);
+                    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+                    filter.date = { $gte: startDate, $lte: endDate };
+
+                } else {
+                    const startDate = new Date(year, 0, 1);
+                    const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+                    filter.date = { $gte: startDate, $lte: endDate };
+                }
+            }
+
+            return await this.oilCheckRepository.findManyBy(filter, {
                 populate: [{ path: 'fryer' }],
             });
-        } catch {
-            throw new InternalServerErrorException();
+        } catch (error) {
+            throw new InternalServerErrorException(error.message || 'Something went wrong');
         }
     }
 
