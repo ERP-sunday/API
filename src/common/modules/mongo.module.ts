@@ -15,6 +15,8 @@ import {Fryer, FryerSchema} from "../../modules/fryer/models/fryer.model";
 import {FryerRepository} from "../../modules/fryer/repositories/fryer.repository";
 import {OilCheckRepository} from "../../modules/oil.check/repositories/oil.check.repository";
 import {OilCheck, OilCheckSchema} from "../../modules/oil.check/models/oil.check.model";
+import {Supplier, SupplierSchema} from "../../modules/supplier/models/supplier.model";
+import {SupplierRepository} from "../../modules/supplier/repositories/supplier.repository";
 
 @Module({
   imports: [
@@ -31,8 +33,11 @@ import {OilCheck, OilCheckSchema} from "../../modules/oil.check/models/oil.check
     NestMongooseModule.forFeature([
       { name: OilCheck.name, schema: OilCheckSchema },
     ]),
+    NestMongooseModule.forFeature([
+      { name: Supplier.name, schema: SupplierSchema },
+    ]),
   ],
-  providers: [UserRepository, ColdStorageRepository, ColdStorageTemperatureRepository, FryerRepository, OilCheckRepository],
-  exports: [NestMongooseModule, UserRepository, ColdStorageRepository, ColdStorageTemperatureRepository, FryerRepository, OilCheckRepository],
+  providers: [UserRepository, ColdStorageRepository, ColdStorageTemperatureRepository, FryerRepository, OilCheckRepository, SupplierRepository],
+  exports: [NestMongooseModule, UserRepository, ColdStorageRepository, ColdStorageTemperatureRepository, FryerRepository, OilCheckRepository, SupplierRepository],
 })
 export class MongoModule {}
