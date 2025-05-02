@@ -10,6 +10,7 @@ import { ColdStorageTemperatureModule } from './modules/cold.storage.temperature
 import {FryerModule} from "./modules/fryer/fryer.module";
 import {OilCheckModule} from "./modules/oil.check/oil.check.module";
 import {SupplierModule} from "./modules/supplier/supplier.module";
+import {ReceiptProductModule} from "./modules/receipt.product/receipt.product.module";
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import {SupplierModule} from "./modules/supplier/supplier.module";
     ColdStorageTemperatureModule,
     FryerModule,
     OilCheckModule,
-    SupplierModule
+    SupplierModule,
+    ReceiptProductModule
   ],
   providers: [JwtAuthGuard],
 })
