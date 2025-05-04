@@ -48,7 +48,6 @@ export class ReceiptProductController {
     })
     async findAll() {
         const products = await this.receiptProductService.getAllProducts();
-        console.log(products)
         return { error: null, data: products };
     }
 

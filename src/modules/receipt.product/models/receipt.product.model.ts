@@ -1,4 +1,4 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export enum ProductType {
@@ -9,6 +9,7 @@ export enum ProductType {
     OTHER = 'other',
 }
 
+@Schema()
 export class ReceiptProduct extends Document {
     @Prop({ type: String, required: true, trim: true })
     name: string;
