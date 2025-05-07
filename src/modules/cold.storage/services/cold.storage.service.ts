@@ -6,6 +6,7 @@ import { ColdStorageRepository } from 'src/modules/cold.storage/repositories/col
 import { ColdStorageDTO } from '../dto/cold.storage.dto';
 import { ColdStorage } from '../models/cold.storage.model';
 import { BaseService } from '../../../common/services/base.service';
+import {ColdStoragePatchDTO} from "../dto/cold.storage.patch.dto";
 
 @Injectable()
 export class ColdStorageService extends BaseService {
@@ -45,7 +46,7 @@ export class ColdStorageService extends BaseService {
 
   async updateColdStorage(
       coldStorageId: string,
-      updatedColdStorage: ColdStorageDTO,
+      updatedColdStorage: ColdStoragePatchDTO,
   ): Promise<ColdStorage> {
     try {
       const isUpdated = await this.coldStorageRepository.updateOneBy(
