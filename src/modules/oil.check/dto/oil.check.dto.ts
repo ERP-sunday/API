@@ -1,31 +1,29 @@
-import { ApiProperty } from '@nestjs/swagger';
-import {IsEnum, IsMongoId, IsNotEmpty, IsNumber, Min, Max, IsDateString} from 'class-validator';
-import {TestMethod} from "../models/oil.check.model";
+import {
+    IsEnum,
+    IsMongoId,
+    IsNotEmpty,
+    IsNumber,
+    Min,
+    Max,
+    IsDateString,
+} from 'class-validator';
+import { TestMethod } from '../models/oil.check.model';
+import { ValidationMessages } from 'src/common/utils/validation.messages';
 
 export class OilCheckDTO {
-    @ApiProperty({ description: 'ID du Fryer associé' })
-    @IsMongoId()
-    @IsNotEmpty()
+    @IsMongoId({ message: ValidationMessages.MONGO_ID })
+    @IsNotEmpty({ message: ValidationMessages.REQUIRED })
     fryerId: string;
 
-    @ApiProperty({
-        description: 'Méthode de test utilisée',
-        enum: TestMethod,
-    })
-    @IsEnum(TestMethod, { message: 'Méthode de test invalide' })
+    @IsEnum(TestMethod, { message: ValidationMessages.ENUM })
     testMethod: TestMethod;
 
-    @ApiProperty()
-    @IsDateString()
-    @IsNotEmpty()
-    date: Date
+    @IsDateString({}, { message: ValidationMessages.DATE })
+    @IsNotEmpty({ message: ValidationMessages.REQUIRED })
+    date: string;
 
-    @ApiProperty({
-        description: 'Pourcentage polaire mesuré',
-        example: 12.5,
-    })
-    @IsNumber()
-    @Min(0)
-    @Max(100)
+    @IsNumber({}, { message: ValidationMessages.NUMBER })
+    @Min(0, { message: 'La valeur minimale est 0' })
+    @Max(100, { message: 'La valeur maximale est 100' })
     polarPercentage: number;
 }
