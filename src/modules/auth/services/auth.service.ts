@@ -1,78 +1,85 @@
 import {
-  BadRequestException,
   Injectable,
-  NotFoundException,
+  ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
 import { User } from 'src/modules/user/models/user.model';
 import { UserRepository } from 'src/modules/user/repositories/user.repository';
 import { RegisterDto } from 'src/modules/auth/dto/auth.dto';
-import * as bcrypt from 'bcryptjs';
-import { JwtService } from '@nestjs/jwt';
 import config from 'src/configs/config';
+import { BaseService } from '../../../common/services/base.service';
 
 @Injectable()
-export class AuthService {
+export class AuthService extends BaseService {
   constructor(
-    private readonly userRepository: UserRepository,
-    private readonly jwtService: JwtService,
-  ) {}
-
-  async findOne(email: string): Promise<User> {
-    const response = await this.userRepository.findOneBy({
-      email: email,
-    });
-
-    if (!response) {
-      throw new NotFoundException(`User with email ${email} not found`);
-    }
-
-    return response as User;
+      private readonly userRepository: UserRepository,
+      private readonly jwtService: JwtService,
+  ) {
+    super();
   }
 
-  async findOneById(userId): Promise<User> {
-    const response = await this.userRepository.findOneById(userId);
-
-    if (!response) {
-      throw new NotFoundException(`User with _id ${userId} not found`);
+  async findOne(email: string): Promise<User> {
+    try {
+      const user = await this.userRepository.findOneBy({ email });
+      return this.assertFound(user, `User with email ${email} not found`) as User;
+    } catch (error) {
+      this.handleError(error);
     }
+  }
 
-    return response as User;
+  async findOneById(userId: string): Promise<User> {
+    try {
+      const user = await this.userRepository.findOneById(userId);
+      return this.assertFound(user, `User with ID ${userId} not found`) as User;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async generateRefreshToken(userId: string): Promise<string> {
-    const payload = { sub: userId };
-    return this.jwtService.signAsync(payload, {
-      secret: config().jwtRefreshToken,
-      expiresIn: config().refreshJwtExpiration,
-    });
+    try {
+      const payload = { sub: userId };
+      return await this.jwtService.signAsync(payload, {
+        secret: config().jwtRefreshToken,
+        expiresIn: config().refreshJwtExpiration,
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async generateJwt(userId: string): Promise<string> {
-    const payload = { sub: userId };
-    return this.jwtService.signAsync(payload, {
-      expiresIn: config().jwtExpiration,
-    });
+    try {
+      const payload = { sub: userId };
+      return await this.jwtService.signAsync(payload, {
+        expiresIn: config().jwtExpiration,
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
-  async updateRefreshToken(
-    userId: string,
-    refreshToken: string,
-  ): Promise<boolean> {
-    const hashedToken = await bcrypt.hash(refreshToken, 10);
-    return await this.userRepository.updateOneBy(
-      { _id: userId },
-      { refreshToken: hashedToken },
-    );
+  async updateRefreshToken(userId: string, refreshToken: string): Promise<boolean> {
+    try {
+      const hashedToken = await bcrypt.hash(refreshToken, 10);
+      return await this.userRepository.updateOneBy(
+          { _id: userId },
+          { refreshToken: hashedToken },
+      );
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async verifyRefreshToken(refreshToken: string): Promise<any> {
     try {
-      return this.jwtService.verifyAsync(refreshToken, {
+      return await this.jwtService.verifyAsync(refreshToken, {
         secret: config().jwtRefreshToken,
       });
-    } catch (err) {
-      throw new UnauthorizedException('Invalid refresh token');
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
 
@@ -80,19 +87,21 @@ export class AuthService {
     try {
       const { email, password, firstname, lastname } = parameters;
 
-      const genSalt = await bcrypt.genSalt();
-      const hashPassword = await bcrypt.hash(password, genSalt);
+      const existingUser = await this.userRepository.findOptionalBy({ email });
+      if (existingUser) throw new ConflictException('User already exists');
 
-      const savedUser = (await this.userRepository.insert({
-        email: email,
-        firstname: firstname,
+      const hashPassword = await bcrypt.hash(password, await bcrypt.genSalt());
+
+      const createdUser = await this.userRepository.insert({
+        email,
+        firstname,
+        lastname,
         password: hashPassword,
-        lastname: lastname,
-      })) as User;
+      }) as User;
 
-      return await this.userRepository.findOneById(savedUser._id);
-    } catch (e) {
-      throw new BadRequestException();
+      return await this.userRepository.findOneById(createdUser._id);
+    } catch (error) {
+      this.handleError(error);
     }
   }
 }

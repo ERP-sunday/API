@@ -18,6 +18,7 @@ import {ColdStorageDTO} from "../../cold.storage/dto/cold.storage.dto";
 import {ColdStorageTemperatureDTO} from "../dto/cold.storage.temperature.dto";
 import {ColdStorageTemperature} from "../models/cold.storage.temperature.model";
 import {ColdStorageTemperaturePatchDTO} from "../dto/cold.storage.temperature.patch.dto";
+import {DateRangeFilter} from "../../../common/filters/date.range.filter";
 
 @ApiTags('cold-storage-temperature')
 @UseGuards(JwtAuthGuard)
@@ -45,11 +46,12 @@ export class ColdStorageTemperatureController {
       @Query('month') month?: string,
       @Query('year') year?: string
   ) {
-    const coldStorages = await this.coldStorageTemperatureService.getAllColdStorageTemperatures(
-        day ? parseInt(day, 10) : undefined,
-        month ? parseInt(month, 10) : undefined,
-        year ? parseInt(year, 10) : undefined
-    );
+    const filter = new DateRangeFilter({
+      year: year ? parseInt(year, 10) : undefined,
+      month: month ? parseInt(month, 10) : undefined,
+      day: day ? parseInt(day, 10) : undefined,
+    });
+    const coldStorages = await this.coldStorageTemperatureService.getAllColdStorageTemperatures(filter);
     return { error: null, data: coldStorages };
   }
 
