@@ -5,119 +5,103 @@ import {
   UpdateQuery,
 } from 'mongoose';
 import {
-  BadRequestException,
-  Injectable,
+  BadRequestException, ConflictException,
+  Injectable, InternalServerErrorException, Logger,
   NotFoundException,
 } from '@nestjs/common';
 
 @Injectable()
 export class BaseRepository<T extends Document> {
+  private readonly logger = new Logger(BaseRepository.name);
+
   constructor(protected readonly model: Model<T>) {}
+
+  private transform(doc: T | (Document & { toObject: () => any })): T {
+    return doc.toObject({ versionKey: false }) as T;
+  }
 
   async insertMany(data: Partial<T>[]): Promise<T[]> {
     try {
-      const insertedObjects = await this.model.insertMany(data);
-      return insertedObjects.map(obj => obj.toObject({ versionKey: false }));
+      const docs = await this.model.insertMany(data);
+      return docs.map((doc) => (doc.toObject({ versionKey: false }) as T));
     } catch (error) {
-      console.error('Error inserting multiple documents:', error);
-      throw new BadRequestException('Failed to insert multiple documents');
+      this.handleError('insertMany', error);
     }
   }
 
   async insert(data: Partial<T>): Promise<T> {
     try {
-      const newObject = new this.model(data);
-      await newObject.validate();
-      const insertedObject = await newObject.save();
-      return insertedObject.toObject({ versionKey: false });
+      const doc = new this.model(data);
+      await doc.validate();
+      const saved = await doc.save();
+      return this.transform(saved);
     } catch (error) {
-      console.error('Error inserting document:', error);
-      throw new BadRequestException('Failed to insert document');
+      this.handleError('insert', error);
     }
   }
 
-  async findOneBy(
-    condition: FilterQuery<T>,
-    params?: AdditionalParams,
-  ): Promise<T | null> {
+  async findOneBy(condition: FilterQuery<T>, params?: AdditionalParams): Promise<T> {
     try {
-      const foundObject = await this.model
-        .findOne(condition)
-        .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
-        .populate(params?.populate || []);
-
-      if (!foundObject) {
-        throw new NotFoundException('Document not found');
-      }
-
-      return foundObject.toObject({ versionKey: false });
+      const doc = await this.model
+          .findOne(condition)
+          .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
+          .populate(params?.populate || []);
+      if (!doc) throw new NotFoundException('Document not found');
+      return this.transform(doc);
     } catch (error) {
-      console.error('Error finding document:', error);
-      throw new BadRequestException('Failed to find document');
+      this.handleError('findOneBy', error);
     }
   }
 
-  async findOptionalBy(
-      condition: FilterQuery<T>,
-      params?: AdditionalParams,
-  ): Promise<T | null> {
-    const foundObject = await this.model
-        .findOne(condition)
-        .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
-        .populate(params?.populate || []);
-
-    return foundObject ? foundObject.toObject({ versionKey: false }) : null;
+  async findOptionalBy(condition: FilterQuery<T>, params?: AdditionalParams): Promise<T | null> {
+    try {
+      const doc = await this.model
+          .findOne(condition)
+          .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
+          .populate(params?.populate || []);
+      return doc ? this.transform(doc) : null;
+    } catch (error) {
+      this.handleError('findOptionalBy', error);
+    }
   }
 
-  async findOneById(_id: string, params?: AdditionalParams): Promise<T | null> {
+  async findOneById(_id: string, params?: AdditionalParams): Promise<T> {
     if (!Types.ObjectId.isValid(_id)) {
       throw new BadRequestException(`Invalid ObjectId format: ${_id}`);
     }
-
-    const objectId = new Types.ObjectId(_id);
-    return this.findOneBy({ _id: objectId } as FilterQuery<T>, params);
+    return this.findOneBy({ _id: new Types.ObjectId(_id) } as FilterQuery<T>, params);
   }
 
   async deleteOneBy(condition: FilterQuery<T>): Promise<boolean> {
     try {
-      const result = await this.model.deleteOne(condition);
-      return result.deletedCount > 0;
+      const { deletedCount } = await this.model.deleteOne(condition);
+      return deletedCount > 0;
     } catch (error) {
-      console.error('Error deleting document:', error);
-      throw new BadRequestException('Failed to delete document');
+      this.handleError('deleteOneBy', error);
     }
   }
 
-  async updateOneBy(
-    condition: FilterQuery<T>,
-    set: Partial<T>,
-  ): Promise<boolean> {
+  async updateOneBy(condition: FilterQuery<T>, set: Partial<T>): Promise<boolean> {
     try {
-      const update = await this.model.updateOne(condition, {
+      const { modifiedCount } = await this.model.updateOne(condition, {
         $set: set,
         $inc: { __v: 1 },
       } as UpdateQuery<T>);
-      return update.modifiedCount > 0;
+      return modifiedCount > 0;
     } catch (error) {
-      console.error('Error updating document:', error);
-      throw new BadRequestException('Failed to update document');
+      this.handleError('updateOneBy', error);
     }
   }
 
-  async findManyBy(
-    condition: FilterQuery<T>,
-    params?: AdditionalParams,
-  ): Promise<T[]> {
+  async findManyBy(condition: FilterQuery<T>, params?: AdditionalParams): Promise<T[]> {
     try {
-      const foundObjects = await this.model
-        .find(condition)
-        .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
-        .populate(params?.populate || []);
-
-      return foundObjects.map((obj) => obj.toObject({ versionKey: false }));
+      const docs = await this.model
+          .find(condition)
+          .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
+          .populate(params?.populate || []);
+      return docs.map(this.transform);
     } catch (error) {
-      console.error('Error finding documents:', error);
-      throw new BadRequestException('Failed to find documents');
+      this.handleError('findManyBy', error);
     }
   }
 
@@ -125,44 +109,54 @@ export class BaseRepository<T extends Document> {
     return this.findManyBy({}, params);
   }
 
-  async pushArray(
-    condition: FilterQuery<T>,
-    data: Partial<T>,
-  ): Promise<boolean> {
+  async pushArray(condition: FilterQuery<T>, data: Partial<T>): Promise<boolean> {
     try {
-      const update = await this.model.updateOne(condition, {
+      const { modifiedCount } = await this.model.updateOne(condition, {
         $push: data,
         $inc: { __v: 1 },
       } as UpdateQuery<T>);
-      return update.modifiedCount > 0;
+      return modifiedCount > 0;
     } catch (error) {
-      console.error('Error pushing to array:', error);
-      throw new BadRequestException('Failed to push to array');
+      this.handleError('pushArray', error);
     }
   }
 
-  async pullArray(
-    condition: FilterQuery<T>,
-    data: Partial<T>,
-  ): Promise<boolean> {
+  async pullArray(condition: FilterQuery<T>, data: Partial<T>): Promise<boolean> {
     try {
-      const update = await this.model.updateOne(condition, {
+      const { modifiedCount } = await this.model.updateOne(condition, {
         $pull: data,
         $inc: { __v: 1 },
       } as UpdateQuery<T>);
-      return update.modifiedCount > 0;
+      return modifiedCount > 0;
     } catch (error) {
-      console.error('Error pulling from array:', error);
-      throw new BadRequestException('Failed to pull from array');
+      this.handleError('pullArray', error);
     }
   }
 
   private buildSelectString(fields: string[] = []): string {
     return fields.map((field) => `+${field}`).join(' ');
   }
+
+  private handleError(method: string, error: any): never {
+    this.logger.error(`[${method}]`, error);
+
+    if (error.name === 'ValidationError') {
+      throw new BadRequestException(error.message);
+    }
+
+    if (error.code === 11000) {
+      throw new ConflictException('Duplicate key error');
+    }
+
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+
+    throw new InternalServerErrorException(`Unexpected error in ${method}`);
+  }
 }
 
-// Types pour la configuration des requêtes
+// Types
 export type AdditionalParams = {
   hiddenPropertiesToSelect?: string[];
   populate?: { path: string; select?: string }[] | string[];

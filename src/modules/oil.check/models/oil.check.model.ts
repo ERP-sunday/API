@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
-import {Fryer} from "../../fryer/models/fryer.model";
-import DateBeautifier from "../../../common/utils/date.beautifier";
+import { Types } from 'mongoose';
+import { BaseTimestampedSchema } from 'src/common/models/base-timestamped.schema';
+import { addDateTrackingHooks } from 'src/common/utils/date.beautifier';
+import { Fryer } from 'src/modules/fryer/models/fryer.model';
 
 export enum TestMethod {
     NONE = 'none',
@@ -10,42 +11,19 @@ export enum TestMethod {
 }
 
 @Schema()
-export class OilCheck extends Document {
-    @Prop({ type: Types.ObjectId, ref: Fryer.name, required: true })
+export class OilCheck extends BaseTimestampedSchema {
+    @Prop({ ref: Fryer.name, type: Types.ObjectId, required: true })
     fryer: Types.ObjectId;
 
-    @Prop({
-        type: String,
-        enum: TestMethod,
-        required: true,
-    })
+    @Prop({ enum: TestMethod, required: true })
     testMethod: TestMethod;
 
-    @Prop({ type: Date, required: true, default: () => new Date() })
+    @Prop({ required: true, default: Date.now })
     date: Date;
 
-    @Prop({ type: Number, required: true, min: 0, max: 100 })
+    @Prop({ required: true, min: 0, max: 100 })
     polarPercentage: number;
-
-    @Prop({
-        type: String,
-        required: true,
-        default: () => DateBeautifier.shared.getFullDate(),
-    })
-    dateOfCreation: string;
-
-    @Prop({ type: String, required: false })
-    dateLastModified?: string;
 }
 
 export const OilCheckSchema = SchemaFactory.createForClass(OilCheck);
-
-OilCheckSchema.pre('updateOne', function (next) {
-    this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
-    next();
-});
-
-OilCheckSchema.pre('findOneAndUpdate', function (next) {
-    this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
-    next();
-});
+addDateTrackingHooks(OilCheckSchema);

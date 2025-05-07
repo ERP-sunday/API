@@ -1,7 +1,7 @@
 import {
     IsEnum,
     IsMongoId,
-    IsNotEmpty,
+    IsOptional,
     IsNumber,
     Min,
     Max,
@@ -10,20 +10,22 @@ import {
 import { TestMethod } from '../models/oil.check.model';
 import { ValidationMessages } from 'src/common/utils/validation.messages';
 
-export class OilCheckDTO {
+export class OilCheckPatchDTO {
     @IsMongoId({ message: ValidationMessages.MONGO_ID })
-    @IsNotEmpty({ message: ValidationMessages.REQUIRED })
-    fryerId: string;
+    @IsOptional()
+    fryerId?: string;
 
     @IsEnum(TestMethod, { message: ValidationMessages.ENUM })
-    testMethod: TestMethod;
+    @IsOptional()
+    testMethod?: TestMethod;
 
     @IsDateString({}, { message: ValidationMessages.DATE })
-    @IsNotEmpty({ message: ValidationMessages.REQUIRED })
-    date: string;
+    @IsOptional()
+    date?: string;
 
     @IsNumber({}, { message: ValidationMessages.NUMBER })
     @Min(0, { message: 'La valeur minimale est 0' })
     @Max(100, { message: 'La valeur maximale est 100' })
-    polarPercentage: number;
+    @IsOptional()
+    polarPercentage?: number;
 }

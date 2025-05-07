@@ -1,14 +1,13 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import {IsEnum, IsNotEmpty, IsString, MaxLength} from 'class-validator';
 import { ColdStorageType } from 'src/common/utils/types/cold.storage.type';
+import {ValidationMessages} from "../../../common/utils/validation.messages";
 
 export class ColdStorageDTO {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: ValidationMessages.STRING })
+  @IsNotEmpty({ message: ValidationMessages.REQUIRED })
+  @MaxLength(50, { message: ValidationMessages.MAX_LENGTH(50) })
   name: string;
 
-  @ApiProperty()
-  @IsEnum(ColdStorageType, { message: 'Invalid type for ColdStorage' })
+  @IsEnum(ColdStorageType, { message: ValidationMessages.ENUM })
   type: ColdStorageType;
 }

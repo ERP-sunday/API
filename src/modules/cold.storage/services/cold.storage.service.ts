@@ -1,73 +1,73 @@
 import {
-  BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { ColdStorageRepository } from 'src/modules/cold.storage/repositories/cold.storage.repository';
 import { ColdStorageDTO } from '../dto/cold.storage.dto';
 import { ColdStorage } from '../models/cold.storage.model';
+import { BaseService } from '../../../common/services/base.service';
+import {ColdStoragePatchDTO} from "../dto/cold.storage.patch.dto";
 
 @Injectable()
-export class ColdStorageService {
-  constructor(private readonly coldStorageRepository: ColdStorageRepository) {}
+export class ColdStorageService extends BaseService {
+  constructor(private readonly coldStorageRepository: ColdStorageRepository) {
+    super();
+  }
 
   async getAllColdStorages(): Promise<ColdStorage[]> {
     try {
-      return (await this.coldStorageRepository.findAll()) as ColdStorage[];
-    } catch {
-      throw new InternalServerErrorException();
+      return await this.coldStorageRepository.findAll() as ColdStorage[];
+    } catch (error) {
+      this.handleError(error);
     }
   }
 
   async getColdStorageById(coldStorageId: string): Promise<ColdStorage> {
     try {
-      return (await this.coldStorageRepository.findOneById(
-        coldStorageId,
-      )) as ColdStorage;
-    } catch {
-      throw new NotFoundException();
+      const coldStorage = await this.coldStorageRepository.findOneById(coldStorageId);
+      return this.assertFound(coldStorage, `Cold storage ${coldStorageId} not found`) as ColdStorage;
+    } catch (error) {
+      this.handleError(error);
     }
   }
 
-  async createColdStorage(parameters: ColdStorageDTO) {
+  async createColdStorage(parameters: ColdStorageDTO): Promise<ColdStorage> {
     try {
-      const { name, type } = parameters;
+      const saved = await this.coldStorageRepository.insert({
+        name: parameters.name,
+        type: parameters.type,
+      }) as ColdStorage;
 
-      const savedColdStorage = (await this.coldStorageRepository.insert({
-        name: name,
-        type: type,
-      })) as ColdStorage;
-
-      return await this.coldStorageRepository.findOneById(savedColdStorage._id);
-    } catch {
-      throw new BadRequestException();
+      return await this.getColdStorageById(saved._id);
+    } catch (error) {
+      this.handleError(error);
     }
   }
 
   async updateColdStorage(
-    coldStorageId: string,
-    updatedColdStorage: ColdStorageDTO,
+      coldStorageId: string,
+      updatedColdStorage: ColdStoragePatchDTO,
   ): Promise<ColdStorage> {
-    const isUpdated = await this.coldStorageRepository.updateOneBy(
-      { _id: coldStorageId },
-      updatedColdStorage,
-    );
+    try {
+      const isUpdated = await this.coldStorageRepository.updateOneBy(
+          { _id: coldStorageId },
+          updatedColdStorage,
+      );
 
-    if (!isUpdated) {
-      throw new NotFoundException();
+      this.assertFound(isUpdated, `Cold storage ${coldStorageId} not found`);
+
+      return await this.getColdStorageById(coldStorageId);
+    } catch (error) {
+      this.handleError(error);
     }
-
-    return await this.getColdStorageById(coldStorageId);
   }
 
   async deleteColdStorage(coldStorageId: string): Promise<void> {
-    const isDeleted = await this.coldStorageRepository.deleteOneBy({
-      _id: coldStorageId,
-    });
-
-    if (!isDeleted) {
-      throw new NotFoundException();
+    try {
+      const isDeleted = await this.coldStorageRepository.deleteOneBy({ _id: coldStorageId });
+      this.assertFound(isDeleted, `Cold storage ${coldStorageId} not found`);
+    } catch (error) {
+      this.handleError(error);
     }
   }
 }

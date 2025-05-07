@@ -1,14 +1,28 @@
-import {IsDate, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString} from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
+import { ValidationMessages } from 'src/common/utils/validation.messages';
 
 export class ColdStorageTemperaturePatchDTO {
-  @ApiProperty({ required: false })
-  @IsNumber({}, { each: true })
+  @IsString({ message: ValidationMessages.STRING })
   @IsOptional()
-  morningTemperature?: number
+  @MaxLength(50, { message: ValidationMessages.MAX_LENGTH(50) })
+  coldStorageId?: string;
 
-  @ApiProperty({ required: false })
-  @IsNumber({}, { each: true })
+  @IsDateString({}, { message: ValidationMessages.DATE })
   @IsOptional()
-  eveningTemperature?: number
+  date?: string;
+
+  @IsNumber({}, { message: ValidationMessages.NUMBER })
+  @IsOptional()
+  morningTemperature?: number;
+
+  @IsNumber({}, { message: ValidationMessages.NUMBER })
+  @IsOptional()
+  eveningTemperature?: number;
 }

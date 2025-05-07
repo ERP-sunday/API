@@ -1,55 +1,28 @@
-import {BadRequestException, Injectable, InternalServerErrorException, NotFoundException,} from '@nestjs/common';
-import {ColdStorageTemperatureRepository} from "../repositories/cold.storage.temperature.repository";
-import {ColdStorageRepository} from "../../cold.storage/repositories/cold.storage.repository";
-import {ColdStorageTemperatureDTO} from "../dto/cold.storage.temperature.dto";
-import {ColdStorageTemperature} from "../models/cold.storage.temperature.model";
-import {Types} from "mongoose";
-import {ColdStorageTemperaturePatchDTO} from "../dto/cold.storage.temperature.patch.dto";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { Types } from 'mongoose';
+import { ColdStorageTemperatureRepository } from '../repositories/cold.storage.temperature.repository';
+import { ColdStorageRepository } from '../../cold.storage/repositories/cold.storage.repository';
+import { ColdStorageTemperatureDTO } from '../dto/cold.storage.temperature.dto';
+import { ColdStorageTemperaturePatchDTO } from '../dto/cold.storage.temperature.patch.dto';
+import { ColdStorageTemperature } from '../models/cold.storage.temperature.model';
+import { BaseService } from '../../../common/services/base.service';
+import { DateRangeFilter } from '../../../common/filters/date.range.filter';
 
 @Injectable()
-export class ColdStorageTemperatureService {
+export class ColdStorageTemperatureService extends BaseService {
   constructor(
       private readonly coldStorageTemperatureRepository: ColdStorageTemperatureRepository,
-      private readonly coldStorageRepository: ColdStorageRepository
-  ) {}
+      private readonly coldStorageRepository: ColdStorageRepository,
+  ) {super();}
 
-  async getAllColdStorageTemperatures(day?: number, month?: number, year?: number) {
+  async getAllColdStorageTemperatures(filter: DateRangeFilter) {
     try {
-      const filter: any = {};
-
-      if (year !== undefined) {
-        if (isNaN(year) || year < 1970) {
-          throw new BadRequestException('Invalid year format');
-        }
-
-        // Si mois et jour sont fournis, on cible une seule journée
-        if (month !== undefined && day !== undefined) {
-          if (isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
-            throw new BadRequestException('Invalid day or month format');
-          }
-
-          const startDate = new Date(year, month - 1, day, 0, 0, 0);
-          const endDate = new Date(year, month - 1, day, 23, 59, 59, 999);
-          filter.date = { $gte: startDate, $lte: endDate };
-
-        } else if (month !== undefined) {
-          if (isNaN(month) || month < 1 || month > 12) {
-            throw new BadRequestException('Invalid month format');
-          }
-
-          const startDate = new Date(year, month - 1, 1);
-          const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-          filter.date = { $gte: startDate, $lte: endDate };
-
-        } else {
-          // Si seulement l’année est fournie
-          const startDate = new Date(year, 0, 1);
-          const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
-          filter.date = { $gte: startDate, $lte: endDate };
-        }
-      }
-
-      const temperatures = await this.coldStorageTemperatureRepository.findManyBy(filter, {
+      const mongoFilter = filter.toDateFilter();
+      const temperatures = await this.coldStorageTemperatureRepository.findManyBy(mongoFilter, {
         populate: [{ path: 'coldStorageId' }],
       });
 
@@ -57,28 +30,27 @@ export class ColdStorageTemperatureService {
         ...rest,
         coldStorage: coldStorageId,
       }));
-
     } catch (error) {
-      console.error('Error fetching filtered temperatures:', error);
-      throw new InternalServerErrorException(error.message || 'Something went wrong');
+      this.handleError(error);
     }
   }
 
   async getColdStorageTemperatureById(coldStorageTemperatureId: string) {
     try {
-      const temperature = (await this.coldStorageTemperatureRepository.findOneById(
+      const temperature = await this.coldStorageTemperatureRepository.findOneById(
           coldStorageTemperatureId,
-          // @ts-ignore
-          { populate: [{ path: 'coldStorageId', select: 'name' }] }
-      )) as ColdStorageTemperature;
+          { populate: [{ path: 'coldStorageId', select: 'name' }] },
+      );
+
+      this.assertFound(temperature, `Temperature record not found`);
 
       return {
         ...temperature,
         coldStorage: temperature.coldStorageId,
         coldStorageId: undefined,
-      }
-    } catch {
-      throw new NotFoundException();
+      };
+    } catch (error) {
+      this.handleError(error);
     }
   }
 
@@ -86,13 +58,14 @@ export class ColdStorageTemperatureService {
     try {
       const results = [];
 
-      for (const coldStorageTemp of parameters) {
-        const { coldStorageId, date, morningTemperature, eveningTemperature } = coldStorageTemp;
+      for (const input of parameters) {
+        const { coldStorageId, date, morningTemperature, eveningTemperature } = input;
 
-        // Vérifie que le cold storage existe
-        await this.coldStorageRepository.findOneById(coldStorageId);
+        await this.assertFound(
+            await this.coldStorageRepository.findOneById(coldStorageId),
+            `ColdStorage ${coldStorageId} not found`,
+        );
 
-        // Recherche une température existante pour le même coldStorageId et la même date (en ignorant l'heure)
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(date);
@@ -103,28 +76,19 @@ export class ColdStorageTemperatureService {
           date: { $gte: startOfDay, $lte: endOfDay },
         });
 
+        let result: ColdStorageTemperature;
+
         if (existing) {
-          // Mise à jour si une température existe déjà
-          const updatePayload: Partial<Omit<ColdStorageTemperature, 'coldStorageId'>> = {};
+          const update: Partial<ColdStorageTemperature> = {};
+          if (morningTemperature != null) update.morningTemperature = morningTemperature;
+          if (eveningTemperature != null) update.eveningTemperature = eveningTemperature;
 
-          if (morningTemperature !== null && morningTemperature !== undefined) {
-            updatePayload.morningTemperature = morningTemperature;
-          }
+          await this.coldStorageTemperatureRepository.updateOneBy({ _id: existing._id }, update);
 
-          if (eveningTemperature !== null && eveningTemperature !== undefined) {
-            updatePayload.eveningTemperature = eveningTemperature;
-          }
-
-          await this.coldStorageTemperatureRepository.updateOneBy(
-              { _id: existing._id },
-              updatePayload
-          );
-
-          results.push(await this.coldStorageTemperatureRepository.findOneById(existing._id.toString(), {
-            populate: ['coldStorageId']
-          }));
+          result = await this.coldStorageTemperatureRepository.findOneById(existing._id.toString(), {
+            populate: ['coldStorageId'],
+          });
         } else {
-          // Création sinon
           const inserted = await this.coldStorageTemperatureRepository.insert({
             coldStorageId: new Types.ObjectId(coldStorageId),
             date: new Date(date),
@@ -132,58 +96,60 @@ export class ColdStorageTemperatureService {
             eveningTemperature,
           });
 
-          results.push(await this.coldStorageTemperatureRepository.findOneById(inserted._id.toString(), {
-            populate: ['coldStorageId']
-          }));
+          result = await this.coldStorageTemperatureRepository.findOneById(inserted._id.toString(), {
+            populate: ['coldStorageId'],
+          });
         }
+
+        results.push({
+          ...result,
+          coldStorage: result.coldStorageId,
+          coldStorageId: undefined,
+        });
       }
 
-      // Formatage de la réponse
-      return results.map(e => ({
-        ...e,
-        coldStorage: e.coldStorageId,
-        coldStorageId: undefined,
-      }));
+      return results;
     } catch (error) {
-      throw new BadRequestException(error.message || 'Invalid request');
+      this.handleError(error);
     }
   }
 
   async updateTemperature(
       coldStorageTemperatureId: string,
-      updatedColdStorageTemperature: ColdStorageTemperaturePatchDTO
+      updateDto: ColdStorageTemperaturePatchDTO,
   ): Promise<ColdStorageTemperature> {
     try {
-      const { morningTemperature, eveningTemperature } = updatedColdStorageTemperature;
+      const current = await this.coldStorageTemperatureRepository.findOneById(coldStorageTemperatureId);
+      this.assertFound(current, 'Temperature entry not found');
 
-      const coldStorageTemperature = await this.coldStorageTemperatureRepository.findOneById(coldStorageTemperatureId)
-      await this.coldStorageRepository.findOneById(coldStorageTemperature.coldStorageId.toString());
+      await this.assertFound(
+          await this.coldStorageRepository.findOneById(current.coldStorageId.toString()),
+          'Linked ColdStorage not found',
+      );
 
       const isUpdated = await this.coldStorageTemperatureRepository.updateOneBy(
           { _id: coldStorageTemperatureId },
-          {
-            morningTemperature: morningTemperature,
-            eveningTemperature: eveningTemperature
-          }
-      )
+          // @ts-ignore
+          updateDto,
+      );
 
-      if (!isUpdated) {
-        throw new NotFoundException();
-      }
+      this.assertFound(isUpdated, 'Update failed');
 
-      return this.coldStorageTemperatureRepository.findOneById(coldStorageTemperatureId)
-    } catch {
-      throw new NotFoundException();
+      return await this.coldStorageTemperatureRepository.findOneById(coldStorageTemperatureId);
+    } catch (error) {
+      this.handleError(error);
     }
   }
 
   async deleteColdStorageTemperature(coldStorageTemperatureId: string): Promise<void> {
-    const isDeleted = await this.coldStorageTemperatureRepository.deleteOneBy({
-      _id: new Types.ObjectId(coldStorageTemperatureId),
-    });
+    try {
+      const isDeleted = await this.coldStorageTemperatureRepository.deleteOneBy({
+        _id: new Types.ObjectId(coldStorageTemperatureId),
+      });
 
-    if (!isDeleted) {
-      throw new NotFoundException();
+      this.assertFound(isDeleted, 'Temperature record not found');
+    } catch (error) {
+      this.handleError(error);
     }
   }
 }
