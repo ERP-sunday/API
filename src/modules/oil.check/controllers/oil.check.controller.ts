@@ -1,135 +1,76 @@
 import {
-    Body,
     Controller,
-    Delete,
     Get,
+    Post,
+    Patch,
+    Delete,
+    Param,
+    Body,
+    Query,
     HttpCode,
     HttpStatus,
-    Param,
-    Patch,
-    Post, Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
-import {OilCheckService} from "../services/oil.check.service";
-import {OilCheck} from "../models/oil.check.model";
-import {OilCheckDTO} from "../dto/oil.check.dto";
+import { OilCheckService } from '../services/oil.check.service';
+import { OilCheck } from '../models/oil.check.model';
+import { OilCheckDTO } from '../dto/oil.check.dto';
+import { DateRangeFilter } from '../../../common/filters/date.range.filter';
+import { BaseController } from '../../../common/controllers/base.controller';
+import {OilCheckPatchDTO} from "../dto/oil.check.patch.dto";
 
-@ApiTags('oil-check')
 @UseGuards(JwtAuthGuard)
-@Controller({
-    path: 'oil-check',
-    version: '1',
-})
-export class OilCheckController {
-    constructor(private readonly oilCheckService: OilCheckService) {}
+@Controller({ path: 'oil-check', version: '1' })
+export class OilCheckController extends BaseController<OilCheck, OilCheckDTO, OilCheckPatchDTO> {
+    public readonly service: OilCheckService;
 
-    @HttpCode(HttpStatus.OK)
+    constructor(service: OilCheckService) {
+        super();
+        this.service = service;
+    }
+
     @Get('/')
-    @ApiOperation({ summary: 'Get all oil checks' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'List of all oil checks',
-        type: [OilCheck],
-    })
-    @ApiResponse({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        description: 'Something went wrong',
-    })
+    @HttpCode(HttpStatus.OK)
     async findAll(
         @Query('day') day?: string,
         @Query('month') month?: string,
-        @Query('year') year?: string
+        @Query('year') year?: string,
     ) {
-        const oilChecks = await this.oilCheckService.getAllOilChecks(
-            day ? parseInt(day, 10) : undefined,
-            month ? parseInt(month, 10) : undefined,
-            year ? parseInt(year, 10) : undefined
-        );
-        return { error: null, data: oilChecks };
+        const filter = new DateRangeFilter({
+            day: day ? parseInt(day, 10) : undefined,
+            month: month ? parseInt(month, 10) : undefined,
+            year: year ? parseInt(year, 10) : undefined,
+        });
+
+        const data = await this.service.getAllOilChecks(filter);
+        return { error: null, data };
     }
 
-    @HttpCode(HttpStatus.OK)
     @Get('/:id')
-    @ApiOperation({ summary: 'Get an oil check by ID' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Oil check details',
-        type: OilCheck,
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Oil check not found',
-    })
-    @ApiResponse({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        description: 'Something went wrong',
-    })
+    @HttpCode(HttpStatus.OK)
     async findOne(@Param('id') id: string) {
-        const oilCheck = await this.oilCheckService.getOilCheckById(id);
-        return { error: null, data: oilCheck };
+        const data = await this.service.getOilCheckById(id);
+        return { error: null, data };
     }
 
-    @HttpCode(HttpStatus.OK)
     @Post('/')
-    @ApiOperation({ summary: 'Create oil check' })
-    @ApiBody({ type: OilCheckDTO })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Oil check created successfully',
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Invalid credentials',
-    })
+    @HttpCode(HttpStatus.OK)
     async create(@Body() oilCheckDto: OilCheckDTO) {
-        const newOilCheck = await this.oilCheckService.createOilCheck(oilCheckDto);
-        return { error: null, data: newOilCheck };
+        const data = await this.service.createOilCheck(oilCheckDto);
+        return { error: null, data };
     }
 
-    @HttpCode(HttpStatus.OK)
     @Patch('/:id')
-    @ApiOperation({ summary: 'Update an oil check' })
-    @ApiBody({ type: OilCheckDTO })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Oil check updated successfully',
-        type: OilCheck,
-    })
-    @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Invalid input',
-    })
-    @ApiResponse({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        description: 'Something went wrong',
-    })
-    async update(@Param('id') id: string, @Body() oilCheckDto: OilCheckDTO) {
-        const updatedOilCheck = await this.oilCheckService.updateOilCheck(
-            id,
-            oilCheckDto,
-        );
-        return { error: null, data: updatedOilCheck };
+    @HttpCode(HttpStatus.OK)
+    async update(@Param('id') id: string, @Body() oilCheckDto: OilCheckPatchDTO) {
+        const data = await this.service.updateOilCheck(id, oilCheckDto);
+        return { error: null, data };
     }
 
-    @HttpCode(HttpStatus.OK)
     @Delete('/:id')
-    @ApiOperation({ summary: 'Delete an oil check' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Oil check deleted successfully',
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Oil check not found',
-    })
-    @ApiResponse({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        description: 'Something went wrong',
-    })
+    @HttpCode(HttpStatus.OK)
     async delete(@Param('id') id: string) {
-        await this.oilCheckService.deleteOilCheck(id);
+        await this.service.deleteOilCheck(id);
         return { error: null, data: null };
     }
 }

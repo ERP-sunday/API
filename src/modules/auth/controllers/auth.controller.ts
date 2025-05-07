@@ -1,155 +1,113 @@
 import {
   Body,
-  Controller, Get,
+  Controller,
+  Get,
   HttpCode,
-  HttpStatus, InternalServerErrorException,
+  HttpStatus,
+  InternalServerErrorException,
   Post,
-  UnauthorizedException, UseGuards,
-} from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from 'src/modules/auth/services/auth.service';
-import { LoginDto, RefreshJWTDto, RegisterDto } from "src/modules/auth/dto/auth.dto";
+import { LoginDTO } from 'src/modules/auth/dto/login.dto';
 import * as bcrypt from 'bcryptjs';
 import { User } from 'src/modules/user/models/user.model';
-import {JwtAuthGuard} from "../../../common/guards/jwt.auth.guard";
+import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { User as UserDecorator } from 'src/common/decorators/user.decorator';
+import {RegisterDTO} from "../dto/register.dto";
+import {RefreshJwtDTO} from "../dto/refresh.jwt.dto";
 
-@ApiTags('auth')
-@Controller({
-  path: 'auth',
-  version: '1',
-})
+@Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @HttpCode(HttpStatus.OK)
   @Post('/login')
-  @ApiOperation({ summary: 'User login' })
-  @ApiBody({ type: LoginDto })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Login successful' })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'Invalid credentials',
-  })
-  async login(@Body() loginUserDto: LoginDto) {
-    const user: User = await this.authService.findOne(loginUserDto.email);
-    const isMatch = await bcrypt.compare(loginUserDto.password, user.password);
+  @HttpCode(HttpStatus.OK)
+  async login(@Body() loginUserDto: LoginDTO) {
+    const user = await this.authService.findOne(loginUserDto.email);
+    const isMatch = user && await bcrypt.compare(loginUserDto.password, user.password);
 
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const newAccessToken = await this.authService.generateJwt(user._id);
-    const newRefreshToken = await this.authService.generateRefreshToken(
-      user._id,
-    );
+    const [accessToken, refreshToken] = await Promise.all([
+      this.authService.generateJwt(user._id),
+      this.authService.generateRefreshToken(user._id),
+    ]);
 
-    const isUpdate = await this.authService.updateRefreshToken(
-      user._id,
-      newRefreshToken,
-    );
-
-    if (!isUpdate) {
+    const isUpdated = await this.authService.updateRefreshToken(user._id, refreshToken);
+    if (!isUpdated) {
       throw new InternalServerErrorException('Failed to update refresh token');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, refreshToken, ...userWithoutPassword } = user;
+    const { password, refreshToken: _, ...safeUser } = user;
     return {
       error: null,
-      data: userWithoutPassword,
-      token: {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-      },
+      data: safeUser,
+      token: { accessToken, refreshToken },
     };
   }
 
-  @HttpCode(HttpStatus.CREATED)
   @Post('/register')
-  @ApiOperation({ summary: 'User registration' })
-  @ApiBody({ type: RegisterDto })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Registration successful',
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Validation failed',
-  })
-  async register(@Body() registerUserDto: RegisterDto) {
+  @HttpCode(HttpStatus.CREATED)
+  async register(@Body() registerUserDto: RegisterDTO) {
     const user = await this.authService.createUser(registerUserDto);
 
-    const newAccessToken = await this.authService.generateJwt(user._id);
-    const newRefreshToken = await this.authService.generateRefreshToken(
-      user._id,
-    );
+    const [accessToken, refreshToken] = await Promise.all([
+      this.authService.generateJwt(user._id),
+      this.authService.generateRefreshToken(user._id),
+    ]);
 
-    const isUpdate = await this.authService.updateRefreshToken(
-      user._id,
-      newRefreshToken,
-    );
-
-    if (!isUpdate) {
+    const isUpdated = await this.authService.updateRefreshToken(user._id, refreshToken);
+    if (!isUpdated) {
       throw new InternalServerErrorException('Failed to update refresh token');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, refreshToken, ...userWithoutPassword } = user;
+    const { password, refreshToken: _, ...safeUser } = user;
     return {
       error: null,
-      data: userWithoutPassword,
-      token: {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-      },
+      data: safeUser,
+      token: { accessToken, refreshToken },
     };
   }
 
   @Post('/refresh')
-  async refresh(@Body() refreshJWTDto: RefreshJWTDto) {
-    if (!refreshJWTDto.refreshToken) {
+  @HttpCode(HttpStatus.OK)
+  async refresh(@Body() { refreshToken }: RefreshJwtDTO) {
+    if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is required');
     }
 
-    const payload = await this.authService.verifyRefreshToken(
-      refreshJWTDto.refreshToken,
-    );
-
+    const payload = await this.authService.verifyRefreshToken(refreshToken);
     const user = await this.authService.findOneById(payload.sub);
-    if (!user || !user.refreshToken) {
+
+    if (!user?.refreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const isTokenValid = await bcrypt.compare(
-      refreshJWTDto.refreshToken,
-      user.refreshToken,
-    );
-    if (!isTokenValid) {
+    const isValid = await bcrypt.compare(refreshToken, user.refreshToken);
+    if (!isValid) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const newAccessToken = await this.authService.generateJwt(user._id);
-
+    const accessToken = await this.authService.generateJwt(user._id);
     return {
       error: null,
       data: null,
-      token: {
-        accessToken: newAccessToken,
-      },
+      token: { accessToken },
     };
   }
 
   @Get('/me')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get current user' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Current user info' })
+  @HttpCode(HttpStatus.OK)
   async getCurrentUser(@UserDecorator() user: User) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, refreshToken, ...userWithoutSensitiveInfo } = user;
+    const { password, refreshToken, ...safeUser } = user;
     return {
       error: null,
-      data: userWithoutSensitiveInfo,
+      data: safeUser,
     };
   }
 }
