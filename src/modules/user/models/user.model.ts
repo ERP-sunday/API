@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import DateBeautifier from 'src/common/utils/date.beautifier';
 import { Exclude } from 'class-transformer';
+import { BaseTimestampedSchema } from 'src/common/models/base-timestamped.schema';
+import { addDateTrackingHooks } from 'src/common/utils/date.beautifier';
 
 @Schema()
-export class User extends Document {
+export class User extends BaseTimestampedSchema {
   @Prop({ required: true, unique: true, trim: true })
   email: string;
 
@@ -18,28 +18,10 @@ export class User extends Document {
   @Prop({ required: true, trim: true })
   lastname: string;
 
-  @Prop({ default: null })
-  refreshToken: string;
-
-  @Prop({
-    type: String,
-    required: true,
-    default: DateBeautifier.shared.getFullDate(),
-  })
-  dateOfCreation: string;
-
-  @Prop({ type: String, required: false })
-  dateLastModified?: string;
+  @Prop()
+  @Exclude()
+  refreshToken?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-
-UserSchema.pre('updateOne', function (next) {
-  this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
-  next();
-});
-
-UserSchema.pre('findOneAndUpdate', function (next) {
-  this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
-  next();
-});
+addDateTrackingHooks(UserSchema);

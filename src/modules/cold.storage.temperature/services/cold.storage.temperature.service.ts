@@ -129,6 +129,7 @@ export class ColdStorageTemperatureService extends BaseService {
 
       const isUpdated = await this.coldStorageTemperatureRepository.updateOneBy(
           { _id: coldStorageTemperatureId },
+          // @ts-ignore
           updateDto,
       );
 

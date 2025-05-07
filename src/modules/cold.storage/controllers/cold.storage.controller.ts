@@ -23,9 +23,9 @@ import {ColdStoragePatchDTO} from "../dto/cold.storage.patch.dto";
   version: '1',
 })
 export class ColdStorageController extends BaseController<
-    ColdStorage,
-    ColdStorageDTO,
-    ColdStoragePatchDTO
+  ColdStorage,
+  ColdStorageDTO,
+  ColdStoragePatchDTO
 > {
   public readonly service: ColdStorageService;
 

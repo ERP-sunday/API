@@ -7,9 +7,9 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { User } from 'src/modules/user/models/user.model';
 import { UserRepository } from 'src/modules/user/repositories/user.repository';
-import { RegisterDto } from 'src/modules/auth/dto/login.dto';
 import config from 'src/configs/config';
 import { BaseService } from '../../../common/services/base.service';
+import {RegisterDTO} from "../dto/register.dto";
 
 @Injectable()
 export class AuthService extends BaseService {
@@ -83,7 +83,7 @@ export class AuthService extends BaseService {
     }
   }
 
-  async createUser(parameters: RegisterDto): Promise<User> {
+  async createUser(parameters: RegisterDTO): Promise<User> {
     try {
       const { email, password, firstname, lastname } = parameters;
 

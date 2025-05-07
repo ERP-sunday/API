@@ -1,41 +1,22 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import {Types, Document} from 'mongoose';
-import DateBeautifier from 'src/common/utils/date.beautifier';
+import {Types} from 'mongoose';
+import DateBeautifier, {addDateTrackingHooks} from 'src/common/utils/date.beautifier';
+import {BaseTimestampedSchema} from "../../../common/models/base-timestamped.schema";
 
 @Schema()
-export class ColdStorageTemperature extends Document {
-
-  @Prop({ type: Types.ObjectId, ref: 'ColdStorage', required: true })
+export class ColdStorageTemperature extends BaseTimestampedSchema {
+  @Prop({ ref: 'ColdStorage', type: Types.ObjectId, required: true })
   coldStorageId: Types.ObjectId;
 
-  @Prop({ type: Date, required: true, default: () => new Date() })
+  @Prop({ required: true, default: Date.now })
   date: Date;
 
-  @Prop({ type: Number, default: () => null })
+  @Prop()
   morningTemperature?: number;
 
-  @Prop({ type: Number, default: () => null })
+  @Prop()
   eveningTemperature?: number;
-
-  @Prop({
-    type: String,
-    required: true,
-    default: DateBeautifier.shared.getFullDate(),
-  })
-  dateOfCreation: string;
-
-  @Prop({ type: String, required: false })
-  dateLastModified?: string;
 }
 
 export const ColdStorageTemperatureSchema = SchemaFactory.createForClass(ColdStorageTemperature);
-
-ColdStorageTemperatureSchema.pre('updateOne', function (next) {
-  this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
-  next();
-});
-
-ColdStorageTemperatureSchema.pre('findOneAndUpdate', function (next) {
-  this.set({ dateLastModified: DateBeautifier.shared.getFullDate() });
-  next();
-});
+addDateTrackingHooks(ColdStorageTemperatureSchema)
