@@ -1,0 +1,38 @@
+name: Update PR Title with Ticket Tag
+
+on:
+  pull_request:
+    types: [opened, edited]
+
+jobs:
+  update-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add ticket ID to PR title
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const branch = pr.head.ref;
+
+            // Ex: feature/TAB-22-ajout-logs
+            const match = branch.match(/TAB-(\d+)-(.*)/);
+
+            if (!match) {
+              console.log("No TAB-xxx pattern found in branch name.");
+              return;
+            }
+
+            const ticketId = `TAB-${match[1]}`;
+            const description = match[2].replace(/[-_]/g, ' ').trim();
+            const newTitle = `[${ticketId}] ${description}`;
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              title: newTitle
+            });
+
+            console.log(`PR title updated to: ${newTitle}`);
