@@ -9,13 +9,13 @@ import { User } from 'src/modules/user/models/user.model';
 import { UserRepository } from 'src/modules/user/repositories/user.repository';
 import config from 'src/configs/config';
 import { BaseService } from '../../../common/services/base.service';
-import {RegisterDTO} from "../dto/register.dto";
+import { RegisterDTO } from '../dto/register.dto';
 
 @Injectable()
 export class AuthService extends BaseService {
   constructor(
-      private readonly userRepository: UserRepository,
-      private readonly jwtService: JwtService,
+    private readonly userRepository: UserRepository,
+    private readonly jwtService: JwtService,
   ) {
     super();
   }
@@ -23,7 +23,10 @@ export class AuthService extends BaseService {
   async findOne(email: string): Promise<User> {
     try {
       const user = await this.userRepository.findOneBy({ email });
-      return this.assertFound(user, `User with email ${email} not found`) as User;
+      return this.assertFound(
+        user,
+        `User with email ${email} not found`,
+      ) as User;
     } catch (error) {
       this.handleError(error);
     }
@@ -61,12 +64,15 @@ export class AuthService extends BaseService {
     }
   }
 
-  async updateRefreshToken(userId: string, refreshToken: string): Promise<boolean> {
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<boolean> {
     try {
       const hashedToken = await bcrypt.hash(refreshToken, 10);
       return await this.userRepository.updateOneBy(
-          { _id: userId },
-          { refreshToken: hashedToken },
+        { _id: userId },
+        { refreshToken: hashedToken },
       );
     } catch (error) {
       this.handleError(error);
@@ -92,14 +98,16 @@ export class AuthService extends BaseService {
 
       const hashPassword = await bcrypt.hash(password, await bcrypt.genSalt());
 
-      const createdUser = await this.userRepository.insert({
+      const createdUser = (await this.userRepository.insert({
         email,
         firstname,
         lastname,
         password: hashPassword,
-      }) as User;
+      })) as User;
 
-      return await this.userRepository.findOneById(createdUser._id);
+      return await this.userRepository.findOneById(
+        (createdUser as any)._id.toString(),
+      );
     } catch (error) {
       this.handleError(error);
     }

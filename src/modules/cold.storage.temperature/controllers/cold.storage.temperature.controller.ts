@@ -9,7 +9,7 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { ColdStorageTemperatureService } from '../services/cold.storage.temperature.service';
@@ -22,9 +22,9 @@ import { BaseController } from '../../../common/controllers/base.controller';
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'cold-storage-temperature', version: '1' })
 export class ColdStorageTemperatureController extends BaseController<
-    ColdStorageTemperature,
-    ColdStorageTemperatureDTO[],
-    ColdStorageTemperaturePatchDTO
+  ColdStorageTemperature,
+  ColdStorageTemperatureDTO[],
+  ColdStorageTemperaturePatchDTO
 > {
   public readonly service: ColdStorageTemperatureService;
 
@@ -36,16 +36,17 @@ export class ColdStorageTemperatureController extends BaseController<
   @Get('/')
   @HttpCode(HttpStatus.OK)
   async findAll(
-      @Query('day') day?: string,
-      @Query('month') month?: string,
-      @Query('year') year?: string
+    @Query('day') day?: string,
+    @Query('month') month?: string,
+    @Query('year') year?: string,
   ) {
     const filter = new DateRangeFilter({
       year: year ? parseInt(year, 10) : undefined,
       month: month ? parseInt(month, 10) : undefined,
       day: day ? parseInt(day, 10) : undefined,
     });
-    const coldStorages = await this.service.getAllColdStorageTemperatures(filter);
+    const coldStorages =
+      await this.service.getAllColdStorageTemperatures(filter);
     return { error: null, data: coldStorages };
   }
 
@@ -58,20 +59,24 @@ export class ColdStorageTemperatureController extends BaseController<
 
   @Post('/')
   @HttpCode(HttpStatus.OK)
-  async create(@Body() coldStorageTemperaturesDto: ColdStorageTemperatureDTO[]) {
-    const newColdStorageTemperature = await this.service.createTemperatures(coldStorageTemperaturesDto);
+  async create(
+    @Body() coldStorageTemperaturesDto: ColdStorageTemperatureDTO[],
+  ) {
+    const newColdStorageTemperature = await this.service.createTemperatures(
+      coldStorageTemperaturesDto,
+    );
     return { error: null, data: newColdStorageTemperature };
   }
 
   @Patch('/:id')
   @HttpCode(HttpStatus.OK)
   async update(
-      @Param('id') id: string,
-      @Body() coldStorageTemperatureDto: ColdStorageTemperaturePatchDTO,
+    @Param('id') id: string,
+    @Body() coldStorageTemperatureDto: ColdStorageTemperaturePatchDTO,
   ) {
     const updatedColdStorageTemperature = await this.service.updateTemperature(
-        id,
-        coldStorageTemperatureDto
+      id,
+      coldStorageTemperatureDto,
     );
     return { error: null, data: updatedColdStorageTemperature };
   }
