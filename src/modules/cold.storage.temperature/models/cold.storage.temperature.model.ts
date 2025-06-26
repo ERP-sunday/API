@@ -16,6 +16,12 @@ export class ColdStorageTemperature extends BaseTimestampedSchema {
 
   @Prop()
   eveningTemperature?: number;
+
+  @Prop()
+  morningTime?: string;
+
+  @Prop()
+  eveningTime?: string;
 }
 
 export const ColdStorageTemperatureSchema = SchemaFactory.createForClass(

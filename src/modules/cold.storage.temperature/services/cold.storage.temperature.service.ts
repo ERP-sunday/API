@@ -11,6 +11,7 @@ import { ColdStorageTemperaturePatchDTO } from '../dto/cold.storage.temperature.
 import { ColdStorageTemperature } from '../models/cold.storage.temperature.model';
 import { BaseService } from '../../../common/services/base.service';
 import { DateRangeFilter } from '../../../common/filters/date.range.filter';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ColdStorageTemperatureService extends BaseService {
@@ -86,8 +87,15 @@ export class ColdStorageTemperatureService extends BaseService {
     try {
       const results = [];
 
-      for (const input of parameters) {
-        const { coldStorageId, date, morningTemperature, eveningTemperature } =
+      for (const inputRaw of parameters) {
+        const input = plainToInstance(ColdStorageTemperatureDTO, inputRaw);
+        // Appel de la validation personnalisée
+        try {
+          input.validate();
+        } catch (e) {
+          throw new BadRequestException(e.message);
+        }
+        const { coldStorageId, date, morningTemperature, eveningTemperature, morningTime, eveningTime } =
           input;
 
         await this.assertFound(
@@ -114,6 +122,10 @@ export class ColdStorageTemperatureService extends BaseService {
             update.morningTemperature = morningTemperature;
           if (eveningTemperature != null)
             update.eveningTemperature = eveningTemperature;
+          if (morningTime != null)
+            update.morningTime = morningTime;
+          if (eveningTime != null)
+            update.eveningTime = eveningTime;
 
           await this.coldStorageTemperatureRepository.updateOneBy(
             { _id: existing._id },
@@ -132,6 +144,8 @@ export class ColdStorageTemperatureService extends BaseService {
             date: new Date(date),
             morningTemperature,
             eveningTemperature,
+            morningTime,
+            eveningTime,
           });
 
           result = await this.coldStorageTemperatureRepository.findOneById(

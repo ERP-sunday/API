@@ -25,4 +25,12 @@ export class ColdStorageTemperaturePatchDTO {
   @IsNumber({}, { message: ValidationMessages.NUMBER })
   @IsOptional()
   eveningTemperature?: number;
+
+  @IsString({ message: ValidationMessages.STRING })
+  @IsOptional()
+  morningTime?: string;
+
+  @IsString({ message: ValidationMessages.STRING })
+  @IsOptional()
+  eveningTime?: string;
 }

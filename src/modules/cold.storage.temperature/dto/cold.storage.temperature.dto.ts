@@ -18,4 +18,21 @@ export class ColdStorageTemperatureDTO {
   @IsNumber({}, { message: ValidationMessages.NUMBER })
   @IsOptional()
   eveningTemperature?: number;
+
+  @IsString({ message: ValidationMessages.STRING })
+  @IsOptional()
+  morningTime?: string;
+
+  @IsString({ message: ValidationMessages.STRING })
+  @IsOptional()
+  eveningTime?: string;
+
+  validate() {
+    if (this.morningTemperature !== undefined && (this.morningTime === undefined || this.morningTime === '')) {
+      throw new Error('morningTime est obligatoire si morningTemperature est renseigné');
+    }
+    if (this.eveningTemperature !== undefined && (this.eveningTime === undefined || this.eveningTime === '')) {
+      throw new Error('eveningTime est obligatoire si eveningTemperature est renseigné');
+    }
+  }
 }
