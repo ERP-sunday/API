@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import {Types} from 'mongoose';
-import DateBeautifier, {addDateTrackingHooks} from 'src/common/utils/date.beautifier';
-import {BaseTimestampedSchema} from "../../../common/models/base-timestamped.schema";
+import { Types } from 'mongoose';
+import { addDateTrackingHooks } from 'src/common/utils/date.beautifier';
+import { BaseTimestampedSchema } from '../../../common/models/base-timestamped.schema';
 
 @Schema()
 export class ColdStorageTemperature extends BaseTimestampedSchema {
@@ -18,5 +18,7 @@ export class ColdStorageTemperature extends BaseTimestampedSchema {
   eveningTemperature?: number;
 }
 
-export const ColdStorageTemperatureSchema = SchemaFactory.createForClass(ColdStorageTemperature);
-addDateTrackingHooks(ColdStorageTemperatureSchema)
+export const ColdStorageTemperatureSchema = SchemaFactory.createForClass(
+  ColdStorageTemperature,
+);
+addDateTrackingHooks(ColdStorageTemperatureSchema);

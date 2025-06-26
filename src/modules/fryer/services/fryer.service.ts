@@ -29,8 +29,12 @@ export class FryerService extends BaseService {
 
   async createFryer(parameters: FryerDTO): Promise<Fryer> {
     try {
-      const created = await this.fryerRepository.insert({ name: parameters.name });
-      return await this.fryerRepository.findOneById(created._id);
+      const created = await this.fryerRepository.insert({
+        name: parameters.name,
+      });
+      return await this.fryerRepository.findOneById(
+        (created as any)._id.toString(),
+      );
     } catch (error) {
       this.handleError(error);
     }
@@ -39,8 +43,8 @@ export class FryerService extends BaseService {
   async updateFryer(fryerId: string, fryerDto: FryerDTO): Promise<Fryer> {
     try {
       const isUpdated = await this.fryerRepository.updateOneBy(
-          { _id: fryerId },
-          fryerDto,
+        { _id: fryerId },
+        fryerDto,
       );
 
       this.assertFound(isUpdated, `Fryer ${fryerId} not found`);
@@ -53,7 +57,9 @@ export class FryerService extends BaseService {
 
   async deleteFryer(fryerId: string): Promise<void> {
     try {
-      const isDeleted = await this.fryerRepository.deleteOneBy({ _id: fryerId });
+      const isDeleted = await this.fryerRepository.deleteOneBy({
+        _id: fryerId,
+      });
       this.assertFound(isDeleted, `Fryer ${fryerId} not found`);
     } catch (error) {
       this.handleError(error);

@@ -15,8 +15,8 @@ import * as bcrypt from 'bcryptjs';
 import { User } from 'src/modules/user/models/user.model';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { User as UserDecorator } from 'src/common/decorators/user.decorator';
-import {RegisterDTO} from "../dto/register.dto";
-import {RefreshJwtDTO} from "../dto/refresh.jwt.dto";
+import { RegisterDTO } from '../dto/register.dto';
+import { RefreshJwtDTO } from '../dto/refresh.jwt.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -26,22 +26,27 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginUserDto: LoginDTO) {
     const user = await this.authService.findOne(loginUserDto.email);
-    const isMatch = user && await bcrypt.compare(loginUserDto.password, user.password);
+    const isMatch =
+      user && (await bcrypt.compare(loginUserDto.password, user.password));
 
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.authService.generateJwt(user._id),
-      this.authService.generateRefreshToken(user._id),
+      this.authService.generateJwt((user as any)._id.toString()),
+      this.authService.generateRefreshToken((user as any)._id.toString()),
     ]);
 
-    const isUpdated = await this.authService.updateRefreshToken(user._id, refreshToken);
+    const isUpdated = await this.authService.updateRefreshToken(
+      (user as any)._id.toString(),
+      refreshToken,
+    );
     if (!isUpdated) {
       throw new InternalServerErrorException('Failed to update refresh token');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, refreshToken: _, ...safeUser } = user;
     return {
       error: null,
@@ -56,15 +61,19 @@ export class AuthController {
     const user = await this.authService.createUser(registerUserDto);
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.authService.generateJwt(user._id),
-      this.authService.generateRefreshToken(user._id),
+      this.authService.generateJwt((user as any)._id.toString()),
+      this.authService.generateRefreshToken((user as any)._id.toString()),
     ]);
 
-    const isUpdated = await this.authService.updateRefreshToken(user._id, refreshToken);
+    const isUpdated = await this.authService.updateRefreshToken(
+      (user as any)._id.toString(),
+      refreshToken,
+    );
     if (!isUpdated) {
       throw new InternalServerErrorException('Failed to update refresh token');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, refreshToken: _, ...safeUser } = user;
     return {
       error: null,
@@ -92,7 +101,9 @@ export class AuthController {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const accessToken = await this.authService.generateJwt(user._id);
+    const accessToken = await this.authService.generateJwt(
+      (user as any)._id.toString(),
+    );
     return {
       error: null,
       data: null,
@@ -104,6 +115,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async getCurrentUser(@UserDecorator() user: User) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, refreshToken, ...safeUser } = user;
     return {
       error: null,
