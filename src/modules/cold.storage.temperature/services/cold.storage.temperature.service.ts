@@ -12,6 +12,7 @@ import { ColdStorageTemperature } from '../models/cold.storage.temperature.model
 import { BaseService } from '../../../common/services/base.service';
 import { DateRangeFilter } from '../../../common/filters/date.range.filter';
 import { plainToInstance } from 'class-transformer';
+import { ColdStorageTemperatureRanges } from '../../../common/utils/types/cold.storage.type';
 
 @Injectable()
 export class ColdStorageTemperatureService extends BaseService {
@@ -53,8 +54,7 @@ export class ColdStorageTemperatureService extends BaseService {
             _id: null,
             coldStorage: coldStorage,
             date: filterDate || null,
-            morningTemperature: null,
-            eveningTemperature: null,
+            temperatureRecords: [],
           };
         }
       });
@@ -68,7 +68,7 @@ export class ColdStorageTemperatureService extends BaseService {
       const temperature =
         await this.coldStorageTemperatureRepository.findOneById(
           coldStorageTemperatureId,
-          { populate: [{ path: 'coldStorageId', select: 'name' }] },
+          { populate: [{ path: 'coldStorageId' }] },
         );
 
       this.assertFound(temperature, `Temperature record not found`);
@@ -83,49 +83,95 @@ export class ColdStorageTemperatureService extends BaseService {
     }
   }
 
+  private validateTimeFormat(records: { time: string }[]): void {
+    const timeRegex = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+    
+    for (const record of records) {
+      if (!timeRegex.test(record.time)) {
+        throw new BadRequestException(
+          `Le format de l'heure "${record.time}" est invalide. Le format doit être HH:mm (ex: 14:30)`,
+        );
+      }
+    }
+  }
+
+  private async validateTemperatures(coldStorageId: string, temperatures: { temperature: number; time: string }[]) {
+    // Valider le format de l'heure
+    this.validateTimeFormat(temperatures);
+
+    // Récupérer le cold storage pour connaître son type
+    const coldStorage = await this.coldStorageRepository.findOneById(coldStorageId);
+    if (!coldStorage) {
+      throw new NotFoundException(`ColdStorage ${coldStorageId} not found`);
+    }
+
+    const temperatureRange = ColdStorageTemperatureRanges[coldStorage.type];
+    if (!temperatureRange) {
+      throw new BadRequestException(`Type de stockage non reconnu: ${coldStorage.type}`);
+    }
+
+    // Vérifier chaque température
+    for (const record of temperatures) {
+      if (record.temperature < temperatureRange.min || record.temperature > temperatureRange.max) {
+        throw new BadRequestException(
+          `La température ${record.temperature}°C est hors limites pour ${coldStorage.type} (min: ${temperatureRange.min}°C, max: ${temperatureRange.max}°C)`,
+        );
+      }
+    }
+  }
+
   async createTemperatures(parameters: ColdStorageTemperatureDTO[]) {
     try {
       const results = [];
 
       for (const inputRaw of parameters) {
         const input = plainToInstance(ColdStorageTemperatureDTO, inputRaw);
-        // Appel de la validation personnalisée
-        try {
-          input.validate();
-        } catch (e) {
-          throw new BadRequestException(e.message);
-        }
-        const { coldStorageId, date, morningTemperature, eveningTemperature, morningTime, eveningTime } =
-          input;
+        const { coldStorageId, date, temperatureRecords } = input;
 
-        await this.assertFound(
-          await this.coldStorageRepository.findOneById(coldStorageId),
-          `ColdStorage ${coldStorageId} not found`,
+        // Valider les températures selon le type de stockage
+        await this.validateTemperatures(coldStorageId, temperatureRecords);
+
+        // Création de la date en préservant la date locale
+        const localDate = new Date(date);
+        const startOfDay = new Date(
+          localDate.getFullYear(),
+          localDate.getMonth(),
+          localDate.getDate(),
+          0, 0, 0
+        );
+        const endOfDay = new Date(
+          localDate.getFullYear(),
+          localDate.getMonth(),
+          localDate.getDate(),
+          23, 59, 59, 999
         );
 
-        const startOfDay = new Date(date);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(date);
-        endOfDay.setHours(23, 59, 59, 999);
-
-        const existing =
-          await this.coldStorageTemperatureRepository.findOptionalBy({
-            coldStorageId: new Types.ObjectId(coldStorageId),
-            date: { $gte: startOfDay, $lte: endOfDay },
-          });
+        const existing = await this.coldStorageTemperatureRepository.findOptionalBy({
+          coldStorageId: new Types.ObjectId(coldStorageId),
+          date: { $gte: startOfDay, $lte: endOfDay },
+        });
 
         let result: ColdStorageTemperature;
 
         if (existing) {
-          const update: Partial<ColdStorageTemperature> = {};
-          if (morningTemperature != null)
-            update.morningTemperature = morningTemperature;
-          if (eveningTemperature != null)
-            update.eveningTemperature = eveningTemperature;
-          if (morningTime != null)
-            update.morningTime = morningTime;
-          if (eveningTime != null)
-            update.eveningTime = eveningTime;
+          // Vérification des doublons
+          const existingTimes = new Set(existing.temperatureRecords.map(r => r.time));
+          const newRecords = temperatureRecords.filter(r => !existingTimes.has(r.time));
+          
+          if (newRecords.length !== temperatureRecords.length) {
+            throw new BadRequestException(
+              'Certains relevés de température existent déjà pour cette heure',
+            );
+          }
+
+          // Mise à jour du relevé existant en ajoutant les nouveaux relevés
+          const allRecords = [...(existing.temperatureRecords || []), ...newRecords];
+          // Tri par heure
+          const sortedRecords = allRecords.sort((a, b) => a.time.localeCompare(b.time));
+
+          const update: Partial<ColdStorageTemperature> = {
+            temperatureRecords: sortedRecords,
+          };
 
           await this.coldStorageTemperatureRepository.updateOneBy(
             { _id: existing._id },
@@ -139,13 +185,11 @@ export class ColdStorageTemperatureService extends BaseService {
             },
           );
         } else {
+          // Création d'un nouveau relevé
           const inserted = await this.coldStorageTemperatureRepository.insert({
             coldStorageId: new Types.ObjectId(coldStorageId),
-            date: new Date(date),
-            morningTemperature,
-            eveningTemperature,
-            morningTime,
-            eveningTime,
+            date: startOfDay,
+            temperatureRecords: temperatureRecords,
           });
 
           result = await this.coldStorageTemperatureRepository.findOneById(
@@ -179,6 +223,14 @@ export class ColdStorageTemperatureService extends BaseService {
       );
       this.assertFound(current, 'Temperature entry not found');
 
+      if (updateDto.temperatureRecords) {
+        // Valider les nouvelles températures
+        await this.validateTemperatures(
+          current.coldStorageId.toString(),
+          updateDto.temperatureRecords,
+        );
+      }
+
       await this.assertFound(
         await this.coldStorageRepository.findOneById(
           current.coldStorageId.toString(),
@@ -186,10 +238,45 @@ export class ColdStorageTemperatureService extends BaseService {
         'Linked ColdStorage not found',
       );
 
+      const update: Partial<ColdStorageTemperature> = {};
+
+      // Gestion de la date
+      if (updateDto.date) {
+        const newDate = new Date(updateDto.date);
+        newDate.setHours(0, 0, 0, 0);
+        update.date = newDate;
+      }
+
+      // Gestion des temperatureRecords
+      if (updateDto.temperatureRecords) {
+        // Vérification des doublons avec les relevés existants
+        const existingTimes = new Set(
+          current.temperatureRecords
+            .filter(r => !updateDto.temperatureRecords.find(ur => ur.time === r.time))
+            .map(r => r.time)
+        );
+
+        const hasConflicts = updateDto.temperatureRecords.some(r => existingTimes.has(r.time));
+        if (hasConflicts) {
+          throw new BadRequestException(
+            'Certains relevés de température existent déjà pour cette heure',
+          );
+        }
+
+        // Fusion et tri des relevés
+        const allRecords = [
+          ...current.temperatureRecords.filter(r => 
+            !updateDto.temperatureRecords.find(ur => ur.time === r.time)
+          ),
+          ...updateDto.temperatureRecords,
+        ].sort((a, b) => a.time.localeCompare(b.time));
+
+        update.temperatureRecords = allRecords;
+      }
+
       const isUpdated = await this.coldStorageTemperatureRepository.updateOneBy(
         { _id: coldStorageTemperatureId },
-        // @ts-ignore
-        updateDto,
+        update,
       );
 
       this.assertFound(isUpdated, 'Update failed');

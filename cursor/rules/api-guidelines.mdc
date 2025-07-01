@@ -1,0 +1,24 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+## Tech Stack:
+- Backend: Node.js avec Nest.js
+- Database: MongoDB avec Mongoose ODM
+- Authentification: JWT
+
+## Workflow
+- Utilise pnpm pour ajouter des dépendances
+- Précise si une dépendance est de dev ou de prod
+
+## Standards de code
+- Tout nouveau code en TypeScript
+- Types explicites pour variables, fonctions et retours
+- Utilise barrel imports
+- Gestion d’erreur et validation des inputs systématiques
+- Imports relatifs uniquement
+
+## Bonnes pratiques
+- Respect des principes RESTful et SOLID
+- Priorité à la performance et à la lisibilité

@@ -1,11 +1,6 @@
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsDate, IsDateString, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { TemperatureRecordDTO } from './temperature.record.dto';
 import { ValidationMessages } from 'src/common/utils/validation.messages';
 
 export class ColdStorageTemperaturePatchDTO {
@@ -18,19 +13,9 @@ export class ColdStorageTemperaturePatchDTO {
   @IsOptional()
   date?: string;
 
-  @IsNumber({}, { message: ValidationMessages.NUMBER })
   @IsOptional()
-  morningTemperature?: number;
-
-  @IsNumber({}, { message: ValidationMessages.NUMBER })
-  @IsOptional()
-  eveningTemperature?: number;
-
-  @IsString({ message: ValidationMessages.STRING })
-  @IsOptional()
-  morningTime?: string;
-
-  @IsString({ message: ValidationMessages.STRING })
-  @IsOptional()
-  eveningTime?: string;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TemperatureRecordDTO)
+  temperatureRecords?: TemperatureRecordDTO[];
 }
