@@ -1,4 +1,6 @@
-import {IsDateString, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength} from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsDateString, IsMongoId, IsNotEmpty, MaxLength, ValidateNested, ArrayNotEmpty } from 'class-validator';
+import { TemperatureRecordDTO } from './temperature.record.dto';
 import { ValidationMessages } from 'src/common/utils/validation.messages';
 
 export class ColdStorageTemperatureDTO {
@@ -11,11 +13,9 @@ export class ColdStorageTemperatureDTO {
   @IsNotEmpty({ message: ValidationMessages.REQUIRED })
   date: string;
 
-  @IsNumber({}, { message: ValidationMessages.NUMBER })
-  @IsOptional()
-  morningTemperature?: number;
-
-  @IsNumber({}, { message: ValidationMessages.NUMBER })
-  @IsOptional()
-  eveningTemperature?: number;
+  @IsArray({ message: 'Les relevés de température doivent être un tableau' })
+  @ArrayNotEmpty({ message: 'Au moins un relevé de température est requis' })
+  @ValidateNested({ each: true, message: 'Chaque relevé doit être valide' })
+  @Type(() => TemperatureRecordDTO)
+  temperatureRecords: TemperatureRecordDTO[];
 }
