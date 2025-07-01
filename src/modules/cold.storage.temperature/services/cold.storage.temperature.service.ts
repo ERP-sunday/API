@@ -13,6 +13,8 @@ import { BaseService } from '../../../common/services/base.service';
 import { DateRangeFilter } from '../../../common/filters/date.range.filter';
 import { plainToInstance } from 'class-transformer';
 import { ColdStorageTemperatureRanges } from '../../../common/utils/types/cold.storage.type';
+import { TemperatureAnomalyType } from '../models/temperature.anomaly.enum';
+import { CorrectiveActionType } from '../models/corrective.action.enum';
 
 @Injectable()
 export class ColdStorageTemperatureService extends BaseService {
@@ -95,7 +97,7 @@ export class ColdStorageTemperatureService extends BaseService {
     }
   }
 
-  private async validateTemperatures(coldStorageId: string, temperatures: { temperature: number; time: string }[]) {
+  private async validateTemperatures(coldStorageId: string, temperatures: { temperature: number; time: string; correctiveAction?: CorrectiveActionType }[]) {
     // Valider le format de l'heure
     this.validateTimeFormat(temperatures);
 
@@ -109,15 +111,32 @@ export class ColdStorageTemperatureService extends BaseService {
     if (!temperatureRange) {
       throw new BadRequestException(`Type de stockage non reconnu: ${coldStorage.type}`);
     }
-
-    // Vérifier chaque température
-    for (const record of temperatures) {
-      if (record.temperature < temperatureRange.min || record.temperature > temperatureRange.max) {
-        throw new BadRequestException(
-          `La température ${record.temperature}°C est hors limites pour ${coldStorage.type} (min: ${temperatureRange.min}°C, max: ${temperatureRange.max}°C)`,
-        );
+    
+    // Vérifier chaque température et ajouter l'anomalie si nécessaire
+    return temperatures.map(record => {
+      if (record.temperature < temperatureRange.min) {
+        if (!record.correctiveAction) {
+          throw new BadRequestException(
+            `Une action corrective est requise pour la température ${record.temperature}°C qui est trop basse (< ${temperatureRange.min}°C)`,
+          );
+        }
+        return { ...record, anomaly: TemperatureAnomalyType.TOO_LOW };
       }
-    }
+      if (record.temperature > temperatureRange.max) {
+        if (!record.correctiveAction) {
+          throw new BadRequestException(
+            `Une action corrective est requise pour la température ${record.temperature}°C qui est trop haute (> ${temperatureRange.max}°C)`,
+          );
+        }
+        return { ...record, anomaly: TemperatureAnomalyType.TOO_HIGH };
+      }
+      // Si la température est normale, on supprime l'action corrective si elle était présente
+      return { 
+        ...record, 
+        anomaly: TemperatureAnomalyType.NONE,
+        correctiveAction: undefined 
+      };
+    });
   }
 
   async createTemperatures(parameters: ColdStorageTemperatureDTO[]) {
@@ -128,8 +147,8 @@ export class ColdStorageTemperatureService extends BaseService {
         const input = plainToInstance(ColdStorageTemperatureDTO, inputRaw);
         const { coldStorageId, date, temperatureRecords } = input;
 
-        // Valider les températures selon le type de stockage
-        await this.validateTemperatures(coldStorageId, temperatureRecords);
+        // Valider les températures selon le type de stockage et obtenir les records avec les anomalies
+        const validatedRecords = await this.validateTemperatures(coldStorageId, temperatureRecords);
 
         // Création de la date en préservant la date locale
         const localDate = new Date(date);
@@ -156,9 +175,9 @@ export class ColdStorageTemperatureService extends BaseService {
         if (existing) {
           // Vérification des doublons
           const existingTimes = new Set(existing.temperatureRecords.map(r => r.time));
-          const newRecords = temperatureRecords.filter(r => !existingTimes.has(r.time));
+          const newRecords = validatedRecords.filter(r => !existingTimes.has(r.time));
           
-          if (newRecords.length !== temperatureRecords.length) {
+          if (newRecords.length !== validatedRecords.length) {
             throw new BadRequestException(
               'Certains relevés de température existent déjà pour cette heure',
             );
@@ -189,7 +208,7 @@ export class ColdStorageTemperatureService extends BaseService {
           const inserted = await this.coldStorageTemperatureRepository.insert({
             coldStorageId: new Types.ObjectId(coldStorageId),
             date: startOfDay,
-            temperatureRecords: temperatureRecords,
+            temperatureRecords: validatedRecords,
           });
 
           result = await this.coldStorageTemperatureRepository.findOneById(
@@ -223,14 +242,6 @@ export class ColdStorageTemperatureService extends BaseService {
       );
       this.assertFound(current, 'Temperature entry not found');
 
-      if (updateDto.temperatureRecords) {
-        // Valider les nouvelles températures
-        await this.validateTemperatures(
-          current.coldStorageId.toString(),
-          updateDto.temperatureRecords,
-        );
-      }
-
       await this.assertFound(
         await this.coldStorageRepository.findOneById(
           current.coldStorageId.toString(),
@@ -249,14 +260,20 @@ export class ColdStorageTemperatureService extends BaseService {
 
       // Gestion des temperatureRecords
       if (updateDto.temperatureRecords) {
+        // Valider les nouvelles températures et obtenir les records avec les anomalies
+        const validatedRecords = await this.validateTemperatures(
+          current.coldStorageId.toString(),
+          updateDto.temperatureRecords,
+        );
+
         // Vérification des doublons avec les relevés existants
         const existingTimes = new Set(
           current.temperatureRecords
-            .filter(r => !updateDto.temperatureRecords.find(ur => ur.time === r.time))
+            .filter(r => !validatedRecords.find(ur => ur.time === r.time))
             .map(r => r.time)
         );
 
-        const hasConflicts = updateDto.temperatureRecords.some(r => existingTimes.has(r.time));
+        const hasConflicts = validatedRecords.some(r => existingTimes.has(r.time));
         if (hasConflicts) {
           throw new BadRequestException(
             'Certains relevés de température existent déjà pour cette heure',
@@ -266,9 +283,9 @@ export class ColdStorageTemperatureService extends BaseService {
         // Fusion et tri des relevés
         const allRecords = [
           ...current.temperatureRecords.filter(r => 
-            !updateDto.temperatureRecords.find(ur => ur.time === r.time)
+            !validatedRecords.find(ur => ur.time === r.time)
           ),
-          ...updateDto.temperatureRecords,
+          ...validatedRecords,
         ].sort((a, b) => a.time.localeCompare(b.time));
 
         update.temperatureRecords = allRecords;

@@ -2,15 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { addDateTrackingHooks } from 'src/common/utils/date.beautifier';
 import { BaseTimestampedSchema } from '../../../common/models/base-timestamped.schema';
+import { TemperatureRecord } from './temperature.record.model';
 
-@Schema()
-class TemperatureRecord {
-  @Prop({ required: true })
-  temperature: number;
-
-  @Prop({ required: true })
-  time: string;
-}
 
 @Schema()
 export class ColdStorageTemperature extends BaseTimestampedSchema {
