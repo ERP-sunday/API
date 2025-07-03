@@ -1,6 +1,6 @@
 import { IsNumber, IsString, IsOptional, IsEnum } from 'class-validator';
 import { ValidationMessages } from 'src/common/utils/validation.messages';
-import { CorrectiveActionType } from '../models/corrective.action.enum';
+import { CorrectiveActionType } from '../enums/corrective.action.enum';
 
 export class TemperatureRecordDTO {
   @IsNumber({}, { message: ValidationMessages.NUMBER })

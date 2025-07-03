@@ -13,8 +13,10 @@ import { BaseService } from '../../../common/services/base.service';
 import { DateRangeFilter } from '../../../common/filters/date.range.filter';
 import { plainToInstance } from 'class-transformer';
 import { ColdStorageTemperatureRanges } from '../../../common/utils/types/cold.storage.type';
-import { TemperatureAnomalyType } from '../models/temperature.anomaly.enum';
-import { CorrectiveActionType } from '../models/corrective.action.enum';
+import { TemperatureAnomalyType } from '../enums/temperature.anomaly.enum';
+import { CorrectiveActionType } from '../enums/corrective.action.enum';
+import { TemperatureStatus } from '../enums/temperature.status.enum';
+import { TemperatureStatusResponseDTO } from '../dto/temperature.status.response.dto';
 
 @Injectable()
 export class ColdStorageTemperatureService extends BaseService {
@@ -27,7 +29,17 @@ export class ColdStorageTemperatureService extends BaseService {
 
   async getAllColdStorageTemperatures(filter: DateRangeFilter) {
     try {
-      const mongoFilter = filter.toDateFilter();
+      // Créer les dates de début et fin en UTC
+      const startDate = new Date(Date.UTC(filter.year, filter.month - 1, filter.day));
+      const endDate = new Date(Date.UTC(filter.year, filter.month - 1, filter.day, 23, 59, 59, 999));
+
+      const mongoFilter = {
+        date: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      };
+
       // Appels en parallèle
       const [coldStorages, temperatures] = await Promise.all([
         this.coldStorageRepository.findAll(),
@@ -35,13 +47,6 @@ export class ColdStorageTemperatureService extends BaseService {
           populate: [{ path: 'coldStorageId' }],
         }),
       ]);
-
-      // Déterminer la date du filtre (si présente)
-      let filterDate: string | undefined = undefined;
-      if (filter && filter.year && filter.month && filter.day) {
-        // Format ISO YYYY-MM-DDT00:00:00.000Z
-        filterDate = new Date(Date.UTC(filter.year, filter.month - 1, filter.day, 0, 0, 0)).toISOString();
-      }
 
       // Associer chaque coldStorage à sa température (ou objet vide mais conforme au modèle)
       return coldStorages.map((coldStorage) => {
@@ -55,7 +60,7 @@ export class ColdStorageTemperatureService extends BaseService {
           return {
             _id: null,
             coldStorage: coldStorage,
-            date: filterDate || null,
+            date: startDate,
             temperatureRecords: [],
           };
         }
@@ -150,20 +155,20 @@ export class ColdStorageTemperatureService extends BaseService {
         // Valider les températures selon le type de stockage et obtenir les records avec les anomalies
         const validatedRecords = await this.validateTemperatures(coldStorageId, temperatureRecords);
 
-        // Création de la date en préservant la date locale
+        // Création de la date en UTC
         const localDate = new Date(date);
-        const startOfDay = new Date(
+        const startOfDay = new Date(Date.UTC(
           localDate.getFullYear(),
           localDate.getMonth(),
           localDate.getDate(),
           0, 0, 0
-        );
-        const endOfDay = new Date(
+        ));
+        const endOfDay = new Date(Date.UTC(
           localDate.getFullYear(),
           localDate.getMonth(),
           localDate.getDate(),
           23, 59, 59, 999
-        );
+        ));
 
         const existing = await this.coldStorageTemperatureRepository.findOptionalBy({
           coldStorageId: new Types.ObjectId(coldStorageId),
@@ -317,6 +322,91 @@ export class ColdStorageTemperatureService extends BaseService {
       );
 
       this.assertFound(isDeleted, 'Temperature record not found');
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async getTemperatureStatus(filter: DateRangeFilter): Promise<TemperatureStatusResponseDTO[]> {
+    try {
+      // Créer les dates de début et fin en UTC
+      const startDate = new Date(Date.UTC(filter.year, filter.month - 1, filter.day || 1));
+      const endDate = filter.day
+        ? new Date(Date.UTC(filter.year, filter.month - 1, filter.day, 23, 59, 59, 999))
+        : new Date(Date.UTC(filter.year, filter.month, 0, 23, 59, 59, 999)); // Dernier jour du mois
+
+      const mongoFilter = {
+        date: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      };
+
+      // Appels en parallèle pour optimiser les performances
+      const [coldStorages, temperatures] = await Promise.all([
+        this.coldStorageRepository.findAll(),
+        this.coldStorageTemperatureRepository.findManyBy(mongoFilter),
+      ]);
+
+      const totalStoragesCount = coldStorages.length;
+      const statusMap = new Map<string, TemperatureStatusResponseDTO>();
+
+      // Initialiser le Map avec toutes les dates de la plage
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        statusMap.set(dateStr, {
+          date: dateStr,
+          status: TemperatureStatus.MISSING,
+          anomalyCount: 0,
+          completedStoragesCount: 0,
+          totalStoragesCount,
+        });
+      }
+
+      // Analyser chaque relevé de température
+      for (const temp of temperatures) {
+        const dateStr = temp.date.toISOString().split('T')[0];
+        let currentStatus = statusMap.get(dateStr);
+
+        if (!currentStatus) {
+          currentStatus = {
+            date: dateStr,
+            status: TemperatureStatus.MISSING,
+            anomalyCount: 0,
+            completedStoragesCount: 0,
+            totalStoragesCount,
+          };
+          statusMap.set(dateStr, currentStatus);
+        }
+
+        // Compter les anomalies
+        const anomalies = temp.temperatureRecords.filter(
+          record => record.anomaly && record.anomaly !== TemperatureAnomalyType.NONE
+        ).length;
+        currentStatus.anomalyCount += anomalies;
+
+        // Vérifier si ce frigo a au moins 2 relevés
+        if (temp.temperatureRecords.length >= 2) {
+          currentStatus.completedStoragesCount++;
+        }
+
+        // Mettre à jour le statut selon les règles
+        // Si il y a des anomalies, elles prennent priorité
+        if (currentStatus.anomalyCount > 1) {
+          currentStatus.status = TemperatureStatus.CRITICAL;
+        } else if (currentStatus.anomalyCount === 1) {
+          currentStatus.status = TemperatureStatus.WARNING;
+        } else if (currentStatus.completedStoragesCount === totalStoragesCount) {
+          // Pas d'anomalies et tous les frigos ont leurs relevés
+          currentStatus.status = TemperatureStatus.NORMAL;
+        } else {
+          // Pas d'anomalies mais relevés incomplets
+          currentStatus.status = TemperatureStatus.MISSING;
+        }
+      }
+
+      // Convertir le Map en tableau et trier par date
+      return Array.from(statusMap.values()).sort((a, b) => a.date.localeCompare(b.date));
     } catch (error) {
       this.handleError(error);
     }
