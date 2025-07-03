@@ -18,6 +18,7 @@ import { ColdStorageTemperaturePatchDTO } from '../dto/cold.storage.temperature.
 import { ColdStorageTemperature } from '../models/cold.storage.temperature.model';
 import { DateRangeFilter } from '../../../common/filters/date.range.filter';
 import { BaseController } from '../../../common/controllers/base.controller';
+import { TemperatureStatusResponseDTO } from '../dto/temperature.status.response.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'cold-storage-temperature', version: '1' })
@@ -48,6 +49,22 @@ export class ColdStorageTemperatureController extends BaseController<
     const coldStorages =
       await this.service.getAllColdStorageTemperatures(filter);
     return { error: null, data: coldStorages };
+  }
+
+  @Get('/status')
+  @HttpCode(HttpStatus.OK)
+  async getTemperatureStatus(
+    @Query('day') day?: string,
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+  ) {
+    const filter = new DateRangeFilter({
+      year: year ? parseInt(year, 10) : undefined,
+      month: month ? parseInt(month, 10) : undefined,
+      day: day ? parseInt(day, 10) : undefined,
+    });
+    const result = await this.service.getTemperatureStatus(filter);
+    return { error: null, data: result };
   }
 
   @Get('/:id')

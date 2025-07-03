@@ -1,6 +1,6 @@
 import { Prop, Schema } from "@nestjs/mongoose";
-import { TemperatureAnomalyType } from "./temperature.anomaly.enum";
-import { CorrectiveActionType } from "./corrective.action.enum";
+import { TemperatureAnomalyType } from "../enums/temperature.anomaly.enum";
+import { CorrectiveActionType } from "../enums/corrective.action.enum";
 
 @Schema()
 export class TemperatureRecord {
