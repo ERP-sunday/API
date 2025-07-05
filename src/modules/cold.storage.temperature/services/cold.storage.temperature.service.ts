@@ -327,18 +327,46 @@ export class ColdStorageTemperatureService extends BaseService {
     }
   }
 
-  async getTemperatureStatus(filter: DateRangeFilter): Promise<TemperatureStatusResponseDTO[]> {
+
+
+  async getTemperatureStatusRange(startDate?: string, endDate?: string): Promise<TemperatureStatusResponseDTO[]> {
     try {
-      // Créer les dates de début et fin en UTC
-      const startDate = new Date(Date.UTC(filter.year, filter.month - 1, filter.day || 1));
-      const endDate = filter.day
-        ? new Date(Date.UTC(filter.year, filter.month - 1, filter.day, 23, 59, 59, 999))
-        : new Date(Date.UTC(filter.year, filter.month, 0, 23, 59, 59, 999)); // Dernier jour du mois
+      let start: Date;
+      let end: Date;
+
+      if (startDate && endDate) {
+        // Si les deux dates sont fournies, on les utilise
+        const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+        
+        start = new Date(Date.UTC(startYear, startMonth - 1, startDay));
+        end = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
+      } else if (startDate) {
+        // Si seulement la date de début est fournie, on prend jusqu'à aujourd'hui
+        const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+        start = new Date(Date.UTC(startYear, startMonth - 1, startDay));
+        end = new Date();
+        end.setUTCHours(23, 59, 59, 999);
+      } else if (endDate) {
+        // Si seulement la date de fin est fournie, on prend le dernier mois
+        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+        end = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
+        start = new Date(end);
+        start.setUTCMonth(start.getUTCMonth() - 1);
+        start.setUTCHours(0, 0, 0, 0);
+      } else {
+        // Si aucune date n'est fournie, on prend le mois en cours
+        end = new Date();
+        end.setUTCHours(23, 59, 59, 999);
+        start = new Date(end);
+        start.setUTCDate(1);
+        start.setUTCHours(0, 0, 0, 0);
+      }
 
       const mongoFilter = {
         date: {
-          $gte: startDate,
-          $lte: endDate
+          $gte: start,
+          $lte: end
         }
       };
 
@@ -352,7 +380,7 @@ export class ColdStorageTemperatureService extends BaseService {
       const statusMap = new Map<string, TemperatureStatusResponseDTO>();
 
       // Initialiser le Map avec toutes les dates de la plage
-      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().split('T')[0];
         statusMap.set(dateStr, {
           date: dateStr,
@@ -368,16 +396,7 @@ export class ColdStorageTemperatureService extends BaseService {
         const dateStr = temp.date.toISOString().split('T')[0];
         let currentStatus = statusMap.get(dateStr);
 
-        if (!currentStatus) {
-          currentStatus = {
-            date: dateStr,
-            status: TemperatureStatus.MISSING,
-            anomalyCount: 0,
-            completedStoragesCount: 0,
-            totalStoragesCount,
-          };
-          statusMap.set(dateStr, currentStatus);
-        }
+        if (!currentStatus) continue; // Ignorer les dates hors plage
 
         // Compter les anomalies
         const anomalies = temp.temperatureRecords.filter(
