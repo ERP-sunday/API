@@ -14,7 +14,7 @@ import { DateRangeFilter } from '../../../common/filters/date.range.filter';
 import { plainToInstance } from 'class-transformer';
 import { ColdStorageTemperatureRanges } from '../../../common/utils/types/cold.storage.type';
 import { TemperatureAnomalyType } from '../enums/temperature.anomaly.enum';
-import { CorrectiveActionType } from '../enums/corrective.action.enum';
+import { TemperatureCorrectiveActionType } from '../enums/temperature.corrective.action.enum';
 import { TemperatureStatus } from '../enums/temperature.status.enum';
 import { TemperatureStatusResponseDTO } from '../dto/temperature.status.response.dto';
 
@@ -113,7 +113,7 @@ export class ColdStorageTemperatureService extends BaseService {
     temperatures: {
       temperature: number;
       time: string;
-      correctiveAction?: CorrectiveActionType;
+      correctiveAction?: TemperatureCorrectiveActionType;
     }[],
   ) {
     // Valider le format de l'heure
