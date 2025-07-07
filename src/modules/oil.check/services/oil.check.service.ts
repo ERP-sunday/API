@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OilCheck } from '../models/oil.check.model';
 import { OilCheckDTO } from '../dto/oil.check.dto';
 import { OilCheckRepository } from '../repositories/oil.check.repository';
+import { FryerRepository } from '../../fryer/repositories/fryer.repository';
 import { Types } from 'mongoose';
 import { BaseService } from '../../../common/services/base.service';
 import { DateRangeFilter } from '../../../common/filters/date.range.filter';
@@ -9,15 +10,51 @@ import { OilCheckPatchDTO } from '../dto/oil.check.patch.dto';
 
 @Injectable()
 export class OilCheckService extends BaseService {
-  constructor(private readonly oilCheckRepository: OilCheckRepository) {
+  constructor(
+    private readonly oilCheckRepository: OilCheckRepository,
+    private readonly fryerRepository: FryerRepository,
+  ) {
     super();
   }
 
-  async getAllOilChecks(filter: DateRangeFilter): Promise<OilCheck[]> {
+  async getAllOilChecks(filter: DateRangeFilter) {
     try {
-      const mongoFilter = filter.toDateFilter();
-      return await this.oilCheckRepository.findManyBy(mongoFilter, {
-        populate: [{ path: 'fryer' }],
+      // Créer les dates de début et fin en UTC
+      const startDate = new Date(Date.UTC(filter.year, filter.month - 1, filter.day));
+      const endDate = new Date(Date.UTC(filter.year, filter.month - 1, filter.day, 23, 59, 59, 999));
+
+      const mongoFilter = {
+        date: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      };
+
+      // Appels en parallèle
+      const [fryers, oilChecks] = await Promise.all([
+        this.fryerRepository.findAll(),
+        this.oilCheckRepository.findManyBy(mongoFilter, {
+          populate: [{ path: 'fryer' }],
+        }),
+      ]);
+
+      // Associer chaque fryer à son contrôle d'huile (ou objet vide mais conforme au modèle)
+      return fryers.map((fryer) => {
+        const check = oilChecks.find(
+          (c) => c.fryer && c.fryer._id.toString() === fryer._id.toString()
+        );
+        if (check) {
+          const { fryer: fryerData, ...rest } = check;
+          return { ...rest, fryer: fryerData };
+        } else {
+          return {
+            _id: null,
+            fryer: fryer,
+            date: startDate,
+            testMethod: null,
+            polarPercentage: null,
+          };
+        }
       });
     } catch (error) {
       this.handleError(error);
