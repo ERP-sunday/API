@@ -10,7 +10,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 
-export abstract class BaseController<T, CreateDto, UpdateDto> {
+export abstract class BaseController<CreateDto, UpdateDto> {
   abstract service: any;
 
   @Get('/')

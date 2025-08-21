@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { OilCheckService } from '../services/oil.check.service';
-import { OilCheck } from '../models/oil.check.model';
 import { OilCheckDTO } from '../dto/oil.check.dto';
 import { DateRangeFilter } from '../../../common/filters/date.range.filter';
 import { BaseController } from '../../../common/controllers/base.controller';
@@ -22,7 +21,6 @@ import { OilCheckPatchDTO } from '../dto/oil.check.patch.dto';
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'oil-check', version: '1' })
 export class OilCheckController extends BaseController<
-  OilCheck,
   OilCheckDTO,
   OilCheckPatchDTO
 > {

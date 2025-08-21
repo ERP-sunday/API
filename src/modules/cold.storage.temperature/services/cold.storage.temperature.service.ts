@@ -60,7 +60,7 @@ export class ColdStorageTemperatureService extends BaseService {
             t.coldStorageId._id.toString() === coldStorage._id.toString(),
         );
         if (temp) {
-          const { coldStorageId, ...rest } = temp;
+          const { ...rest } = temp;
           return { ...rest, coldStorage: coldStorage };
         } else {
           return {

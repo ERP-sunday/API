@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FryerDTO } from '../dto/fryer.dto';
 import { Fryer } from '../models/fryer.model';
 import { FryerRepository } from '../repositories/fryer.repository';

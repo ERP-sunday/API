@@ -12,13 +12,12 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { FryerService } from '../services/fryer.service';
-import { Fryer } from '../models/fryer.model';
 import { FryerDTO } from '../dto/fryer.dto';
 import { BaseController } from '../../../common/controllers/base.controller';
 
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'fryer', version: '1' })
-export class FryerController extends BaseController<Fryer, FryerDTO, FryerDTO> {
+export class FryerController extends BaseController<FryerDTO, FryerDTO> {
   public readonly service: FryerService;
 
   constructor(service: FryerService) {
