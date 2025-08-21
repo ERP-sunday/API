@@ -1,13 +1,14 @@
 import {
-  IsEnum,
-  IsMongoId,
-  IsOptional,
-  IsNumber,
-  Min,
-  Max,
-  IsDateString,
+    IsEnum,
+    IsMongoId,
+    IsOptional,
+    IsNumber,
+    Min,
+    Max,
+    IsDateString,
+    ValidateIf,
 } from 'class-validator';
-import { TestMethod } from '../models/oil.check.model';
+import { OilTestMethod, OilCorrectiveActionType } from '../models/oil.check.model';
 import { ValidationMessages } from 'src/common/utils/validation.messages';
 
 export class OilCheckPatchDTO {
@@ -15,17 +16,22 @@ export class OilCheckPatchDTO {
   @IsOptional()
   fryerId?: string;
 
-  @IsEnum(TestMethod, { message: ValidationMessages.ENUM })
-  @IsOptional()
-  testMethod?: TestMethod;
+    @IsEnum(OilTestMethod, { message: ValidationMessages.ENUM })
+    @IsOptional()
+    testMethod?: OilTestMethod;
 
   @IsDateString({}, { message: ValidationMessages.DATE })
   @IsOptional()
   date?: string;
 
-  @IsNumber({}, { message: ValidationMessages.NUMBER })
-  @Min(0, { message: 'La valeur minimale est 0' })
-  @Max(100, { message: 'La valeur maximale est 100' })
-  @IsOptional()
-  polarPercentage?: number;
+    @IsEnum(OilCorrectiveActionType, { message: ValidationMessages.ENUM })
+    @IsOptional()
+    correctiveAction?: OilCorrectiveActionType;
+
+    @ValidateIf((o) => o.testMethod === OilTestMethod.DIGITAL_TESTER)
+    @IsNumber({}, { message: ValidationMessages.NUMBER })
+    @Min(0, { message: 'La valeur minimale est 0' })
+    @Max(100, { message: 'La valeur maximale est 100' })
+    @IsOptional()
+    polarPercentage?: number;
 }
