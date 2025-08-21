@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ColdStorageTemperatureService } from '../modules/cold.storage.temperature/services/cold.storage.temperature.service';
 import { ColdStorageTemperatureRepository } from '../modules/cold.storage.temperature/repositories/cold.storage.temperature.repository';
@@ -22,7 +26,7 @@ describe('ColdStorageTemperatureService', () => {
   // Mock data
   const mockColdStorageId = '60f1b2b3b3b3b3b3b3b3b3b3';
   const mockTemperatureId = '60f1b2b3b3b3b3b3b3b3b3b4';
-  
+
   const mockColdStorage = {
     _id: mockColdStorageId,
     name: 'Chambre froide test',
@@ -37,13 +41,6 @@ describe('ColdStorageTemperatureService', () => {
     time: '09:00',
     anomaly: TemperatureAnomalyType.NONE,
     correctiveAction: undefined,
-  };
-
-  const mockTemperatureRecordWithAnomaly = {
-    temperature: 8.0, // Trop haute pour une chambre positive (max 4.5°C)
-    time: '14:00',
-    anomaly: TemperatureAnomalyType.TOO_HIGH,
-    correctiveAction: CorrectiveActionType.DOOR_CLOSED,
   };
 
   const mockColdStorageTemperature = {
@@ -111,9 +108,15 @@ describe('ColdStorageTemperatureService', () => {
       ],
     }).compile();
 
-    service = module.get<ColdStorageTemperatureService>(ColdStorageTemperatureService);
-    temperatureRepository = module.get<ColdStorageTemperatureRepository>(ColdStorageTemperatureRepository);
-    coldStorageRepository = module.get<ColdStorageRepository>(ColdStorageRepository);
+    service = module.get<ColdStorageTemperatureService>(
+      ColdStorageTemperatureService,
+    );
+    temperatureRepository = module.get<ColdStorageTemperatureRepository>(
+      ColdStorageTemperatureRepository,
+    );
+    coldStorageRepository = module.get<ColdStorageRepository>(
+      ColdStorageRepository,
+    );
 
     // Reset all mocks before each test
     jest.clearAllMocks();
@@ -147,7 +150,7 @@ describe('ColdStorageTemperatureService', () => {
             $lte: expect.any(Date),
           }),
         }),
-        { populate: [{ path: 'coldStorageId' }] }
+        { populate: [{ path: 'coldStorageId' }] },
       );
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty('coldStorage');
@@ -180,7 +183,9 @@ describe('ColdStorageTemperatureService', () => {
       mockColdStorageRepository.findAll.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.getAllColdStorageTemperatures(mockFilter)).rejects.toThrow(InternalServerErrorException);
+      await expect(
+        service.getAllColdStorageTemperatures(mockFilter),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 
@@ -192,27 +197,34 @@ describe('ColdStorageTemperatureService', () => {
         coldStorageId: mockColdStorage,
       } as unknown as ColdStorageTemperature;
 
-      mockTemperatureRepository.findOneById.mockResolvedValue(mockTemperatureWithColdStorage);
+      mockTemperatureRepository.findOneById.mockResolvedValue(
+        mockTemperatureWithColdStorage,
+      );
 
       // Act
-      const result = await service.getColdStorageTemperatureById(mockTemperatureId);
+      const result =
+        await service.getColdStorageTemperatureById(mockTemperatureId);
 
       // Assert
       expect(temperatureRepository.findOneById).toHaveBeenCalledWith(
         mockTemperatureId,
-        { populate: [{ path: 'coldStorageId' }] }
+        { populate: [{ path: 'coldStorageId' }] },
       );
       expect(result).toHaveProperty('coldStorage', mockColdStorage);
       expect(result.coldStorageId).toBeUndefined();
     });
 
-    it('devrait lancer NotFoundException si la température n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si la température n'existe pas", async () => {
       // Arrange
       mockTemperatureRepository.findOneById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.getColdStorageTemperatureById(mockTemperatureId)).rejects.toThrow(NotFoundException);
-      await expect(service.getColdStorageTemperatureById(mockTemperatureId)).rejects.toThrow('Temperature record not found');
+      await expect(
+        service.getColdStorageTemperatureById(mockTemperatureId),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.getColdStorageTemperatureById(mockTemperatureId),
+      ).rejects.toThrow('Temperature record not found');
     });
 
     it('devrait gérer les erreurs de repository', async () => {
@@ -221,46 +233,61 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.findOneById.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.getColdStorageTemperatureById(mockTemperatureId)).rejects.toThrow(InternalServerErrorException);
+      await expect(
+        service.getColdStorageTemperatureById(mockTemperatureId),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 
-  describe('Validation du format de l\'heure', () => {
-    it('devrait valider les formats d\'heure corrects', async () => {
+  describe("Validation du format de l'heure", () => {
+    it("devrait valider les formats d'heure corrects", async () => {
       // Arrange
       const validTimes = ['00:00', '09:30', '14:45', '23:59'];
       const temperatureDTO = {
         ...mockTemperatureDTO,
-        temperatureRecords: validTimes.map(time => ({ temperature: 2.5, time })),
+        temperatureRecords: validTimes.map((time) => ({
+          temperature: 2.5,
+          time,
+        })),
       };
 
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
       mockTemperatureRepository.findOptionalBy.mockResolvedValue(null);
-      mockTemperatureRepository.insert.mockResolvedValue({ _id: mockTemperatureId });
+      mockTemperatureRepository.insert.mockResolvedValue({
+        _id: mockTemperatureId,
+      });
       mockTemperatureRepository.findOneById.mockResolvedValue({
         ...mockColdStorageTemperature,
         coldStorageId: mockColdStorage,
       });
 
       // Act & Assert
-      await expect(service.createTemperatures([temperatureDTO])).resolves.toBeDefined();
+      await expect(
+        service.createTemperatures([temperatureDTO]),
+      ).resolves.toBeDefined();
     });
 
-    it('devrait rejeter les formats d\'heure invalides', async () => {
+    it("devrait rejeter les formats d'heure invalides", async () => {
       // Arrange
       const invalidTimes = ['25:00', '12:60', '9:30', '14:5', 'abc', ''];
-      
+
       for (const invalidTime of invalidTimes) {
         const temperatureDTO = {
           ...mockTemperatureDTO,
           temperatureRecords: [{ temperature: 2.5, time: invalidTime }],
         };
 
-        mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
+        mockColdStorageRepository.findOneById.mockResolvedValue(
+          mockColdStorage,
+        );
 
         // Act & Assert
-        await expect(service.createTemperatures([temperatureDTO])).rejects.toThrow(BadRequestException);
-        await expect(service.createTemperatures([temperatureDTO])).rejects.toThrow(/format de l'heure/);
+        await expect(
+          service.createTemperatures([temperatureDTO]),
+        ).rejects.toThrow(BadRequestException);
+        await expect(
+          service.createTemperatures([temperatureDTO]),
+        ).rejects.toThrow(/format de l'heure/);
       }
     });
   });
@@ -278,7 +305,9 @@ describe('ColdStorageTemperatureService', () => {
 
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
       mockTemperatureRepository.findOptionalBy.mockResolvedValue(null);
-      mockTemperatureRepository.insert.mockResolvedValue({ _id: mockTemperatureId });
+      mockTemperatureRepository.insert.mockResolvedValue({
+        _id: mockTemperatureId,
+      });
       mockTemperatureRepository.findOneById.mockResolvedValue({
         ...mockColdStorageTemperature,
         coldStorageId: mockColdStorage,
@@ -297,7 +326,7 @@ describe('ColdStorageTemperatureService', () => {
               correctiveAction: undefined,
             }),
           ]),
-        })
+        }),
       );
     });
 
@@ -316,14 +345,16 @@ describe('ColdStorageTemperatureService', () => {
 
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
       mockTemperatureRepository.findOptionalBy.mockResolvedValue(null);
-      mockTemperatureRepository.insert.mockResolvedValue({ _id: mockTemperatureId });
+      mockTemperatureRepository.insert.mockResolvedValue({
+        _id: mockTemperatureId,
+      });
       mockTemperatureRepository.findOneById.mockResolvedValue({
         ...mockColdStorageTemperature,
         coldStorageId: mockColdStorage,
       });
 
       // Act
-      const result = await service.createTemperatures([temperatureDTO]);
+      await service.createTemperatures([temperatureDTO]);
 
       // Assert
       expect(temperatureRepository.insert).toHaveBeenCalledWith(
@@ -334,7 +365,7 @@ describe('ColdStorageTemperatureService', () => {
               correctiveAction: CorrectiveActionType.TECHNICIAN_INTERVENTION,
             }),
           ]),
-        })
+        }),
       );
     });
 
@@ -353,14 +384,16 @@ describe('ColdStorageTemperatureService', () => {
 
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
       mockTemperatureRepository.findOptionalBy.mockResolvedValue(null);
-      mockTemperatureRepository.insert.mockResolvedValue({ _id: mockTemperatureId });
+      mockTemperatureRepository.insert.mockResolvedValue({
+        _id: mockTemperatureId,
+      });
       mockTemperatureRepository.findOneById.mockResolvedValue({
         ...mockColdStorageTemperature,
         coldStorageId: mockColdStorage,
       });
 
       // Act
-      const result = await service.createTemperatures([temperatureDTO]);
+      await service.createTemperatures([temperatureDTO]);
 
       // Assert
       expect(temperatureRepository.insert).toHaveBeenCalledWith(
@@ -371,7 +404,7 @@ describe('ColdStorageTemperatureService', () => {
               correctiveAction: CorrectiveActionType.DOOR_CLOSED,
             }),
           ]),
-        })
+        }),
       );
     });
 
@@ -390,8 +423,12 @@ describe('ColdStorageTemperatureService', () => {
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
 
       // Act & Assert
-      await expect(service.createTemperatures([temperatureDTO])).rejects.toThrow(BadRequestException);
-      await expect(service.createTemperatures([temperatureDTO])).rejects.toThrow(/action corrective est requise/);
+      await expect(
+        service.createTemperatures([temperatureDTO]),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createTemperatures([temperatureDTO]),
+      ).rejects.toThrow(/action corrective est requise/);
     });
 
     it('devrait tester avec tous les types de cold storage', async () => {
@@ -407,17 +444,26 @@ describe('ColdStorageTemperatureService', () => {
         [ColdStorageType.DAIRY_PRODUCTS_CHAMBER]: 6.0, // 0-8°C
         [ColdStorageType.REFRIGERATED_ZONE]: 8.0, // < 12°C
       };
-      
+
       for (const type of Object.values(ColdStorageType)) {
-        const mockColdStorageWithType = { ...mockColdStorage, type } as unknown as ColdStorage;
+        const mockColdStorageWithType = {
+          ...mockColdStorage,
+          type,
+        } as unknown as ColdStorage;
         const temperatureDTO = {
           ...mockTemperatureDTO,
-          temperatureRecords: [{ temperature: typeTemperatures[type], time: '09:00' }],
+          temperatureRecords: [
+            { temperature: typeTemperatures[type], time: '09:00' },
+          ],
         };
 
-        mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorageWithType);
+        mockColdStorageRepository.findOneById.mockResolvedValue(
+          mockColdStorageWithType,
+        );
         mockTemperatureRepository.findOptionalBy.mockResolvedValue(null);
-        mockTemperatureRepository.insert.mockResolvedValue({ _id: mockTemperatureId });
+        mockTemperatureRepository.insert.mockResolvedValue({
+          _id: mockTemperatureId,
+        });
         mockTemperatureRepository.findOneById.mockResolvedValue({
           ...mockColdStorageTemperature,
           coldStorageId: mockColdStorageWithType,
@@ -431,13 +477,17 @@ describe('ColdStorageTemperatureService', () => {
       }
     });
 
-    it('devrait lancer NotFoundException si le cold storage n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si le cold storage n'existe pas", async () => {
       // Arrange
       mockColdStorageRepository.findOneById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.createTemperatures([mockTemperatureDTO])).rejects.toThrow(NotFoundException);
-      await expect(service.createTemperatures([mockTemperatureDTO])).rejects.toThrow(/ColdStorage .* not found/);
+      await expect(
+        service.createTemperatures([mockTemperatureDTO]),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.createTemperatures([mockTemperatureDTO]),
+      ).rejects.toThrow(/ColdStorage .* not found/);
     });
   });
 
@@ -446,7 +496,9 @@ describe('ColdStorageTemperatureService', () => {
       // Arrange
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
       mockTemperatureRepository.findOptionalBy.mockResolvedValue(null);
-      mockTemperatureRepository.insert.mockResolvedValue({ _id: mockTemperatureId });
+      mockTemperatureRepository.insert.mockResolvedValue({
+        _id: mockTemperatureId,
+      });
       mockTemperatureRepository.findOneById.mockResolvedValue({
         ...mockColdStorageTemperature,
         coldStorageId: mockColdStorage,
@@ -461,7 +513,7 @@ describe('ColdStorageTemperatureService', () => {
           coldStorageId: expect.any(Types.ObjectId),
           date: expect.any(Date),
           temperatureRecords: expect.any(Array),
-        })
+        }),
       );
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty('coldStorage');
@@ -471,11 +523,19 @@ describe('ColdStorageTemperatureService', () => {
       // Arrange
       const existingTemperature = {
         ...mockColdStorageTemperature,
-        temperatureRecords: [{ temperature: 2.0, time: '08:00', anomaly: TemperatureAnomalyType.NONE }],
+        temperatureRecords: [
+          {
+            temperature: 2.0,
+            time: '08:00',
+            anomaly: TemperatureAnomalyType.NONE,
+          },
+        ],
       } as unknown as ColdStorageTemperature;
 
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
-      mockTemperatureRepository.findOptionalBy.mockResolvedValue(existingTemperature);
+      mockTemperatureRepository.findOptionalBy.mockResolvedValue(
+        existingTemperature,
+      );
       mockTemperatureRepository.updateOneBy.mockResolvedValue(true);
       mockTemperatureRepository.findOneById.mockResolvedValue({
         ...existingTemperature,
@@ -483,7 +543,7 @@ describe('ColdStorageTemperatureService', () => {
       });
 
       // Act
-      const result = await service.createTemperatures([mockTemperatureDTO]);
+      await service.createTemperatures([mockTemperatureDTO]);
 
       // Assert
       expect(temperatureRepository.updateOneBy).toHaveBeenCalledWith(
@@ -494,23 +554,35 @@ describe('ColdStorageTemperatureService', () => {
             expect.objectContaining({ time: '09:00' }), // New
             expect.objectContaining({ time: '15:00' }), // New
           ]),
-        })
+        }),
       );
     });
 
-    it('devrait détecter les doublons d\'heures', async () => {
+    it("devrait détecter les doublons d'heures", async () => {
       // Arrange
       const existingTemperature = {
         ...mockColdStorageTemperature,
-        temperatureRecords: [{ temperature: 2.0, time: '09:00', anomaly: TemperatureAnomalyType.NONE }],
+        temperatureRecords: [
+          {
+            temperature: 2.0,
+            time: '09:00',
+            anomaly: TemperatureAnomalyType.NONE,
+          },
+        ],
       } as unknown as ColdStorageTemperature;
 
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
-      mockTemperatureRepository.findOptionalBy.mockResolvedValue(existingTemperature);
+      mockTemperatureRepository.findOptionalBy.mockResolvedValue(
+        existingTemperature,
+      );
 
       // Act & Assert
-      await expect(service.createTemperatures([mockTemperatureDTO])).rejects.toThrow(BadRequestException);
-      await expect(service.createTemperatures([mockTemperatureDTO])).rejects.toThrow(/relevés de température existent déjà/);
+      await expect(
+        service.createTemperatures([mockTemperatureDTO]),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createTemperatures([mockTemperatureDTO]),
+      ).rejects.toThrow(/relevés de température existent déjà/);
     });
 
     it('devrait traiter plusieurs DTOs en une seule fois', async () => {
@@ -526,7 +598,9 @@ describe('ColdStorageTemperatureService', () => {
 
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
       mockTemperatureRepository.findOptionalBy.mockResolvedValue(null);
-      mockTemperatureRepository.insert.mockResolvedValue({ _id: mockTemperatureId });
+      mockTemperatureRepository.insert.mockResolvedValue({
+        _id: mockTemperatureId,
+      });
       mockTemperatureRepository.findOneById.mockResolvedValue({
         ...mockColdStorageTemperature,
         coldStorageId: mockColdStorage,
@@ -548,46 +622,64 @@ describe('ColdStorageTemperatureService', () => {
         .mockResolvedValueOnce(mockColdStorageTemperature)
         .mockResolvedValueOnce({
           ...mockColdStorageTemperature,
-          temperatureRecords: [...mockColdStorageTemperature.temperatureRecords, mockTemperaturePatchDTO.temperatureRecords![0]],
+          temperatureRecords: [
+            ...mockColdStorageTemperature.temperatureRecords,
+            mockTemperaturePatchDTO.temperatureRecords![0],
+          ],
         });
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
       mockTemperatureRepository.updateOneBy.mockResolvedValue(true);
 
       // Act
-      const result = await service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO);
+      const result = await service.updateTemperature(
+        mockTemperatureId,
+        mockTemperaturePatchDTO,
+      );
 
       // Assert
       expect(temperatureRepository.updateOneBy).toHaveBeenCalledWith(
         { _id: mockTemperatureId },
         expect.objectContaining({
           temperatureRecords: expect.any(Array),
-        })
+        }),
       );
       expect(result).toBeDefined();
     });
 
-    it('devrait lancer NotFoundException si la température n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si la température n'existe pas", async () => {
       // Arrange
       mockTemperatureRepository.findOneById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO)).rejects.toThrow(NotFoundException);
-      await expect(service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO)).rejects.toThrow('Temperature entry not found');
+      await expect(
+        service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO),
+      ).rejects.toThrow('Temperature entry not found');
     });
 
-    it('devrait lancer NotFoundException si le cold storage lié n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si le cold storage lié n'existe pas", async () => {
       // Arrange
-      mockTemperatureRepository.findOneById.mockResolvedValue(mockColdStorageTemperature);
+      mockTemperatureRepository.findOneById.mockResolvedValue(
+        mockColdStorageTemperature,
+      );
       mockColdStorageRepository.findOneById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO)).rejects.toThrow(NotFoundException);
-      await expect(service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO)).rejects.toThrow('Linked ColdStorage not found');
+      await expect(
+        service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO),
+      ).rejects.toThrow('Linked ColdStorage not found');
     });
 
     it('devrait mettre à jour seulement la date', async () => {
       // Arrange
-      const dateOnlyUpdate: ColdStorageTemperaturePatchDTO = { date: '2024-03-21' };
+      const dateOnlyUpdate: ColdStorageTemperaturePatchDTO = {
+        date: '2024-03-21',
+      };
       mockTemperatureRepository.findOneById
         .mockResolvedValueOnce(mockColdStorageTemperature)
         .mockResolvedValueOnce(mockColdStorageTemperature);
@@ -595,14 +687,14 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.updateOneBy.mockResolvedValue(true);
 
       // Act
-      const result = await service.updateTemperature(mockTemperatureId, dateOnlyUpdate);
+      await service.updateTemperature(mockTemperatureId, dateOnlyUpdate);
 
       // Assert
       expect(temperatureRepository.updateOneBy).toHaveBeenCalledWith(
         { _id: mockTemperatureId },
         expect.objectContaining({
           date: expect.any(Date),
-        })
+        }),
       );
     });
 
@@ -611,8 +703,16 @@ describe('ColdStorageTemperatureService', () => {
       const existingTemperatureWithMultipleRecords = {
         ...mockColdStorageTemperature,
         temperatureRecords: [
-          { temperature: 2.5, time: '09:00', anomaly: TemperatureAnomalyType.NONE },
-          { temperature: 3.0, time: '15:00', anomaly: TemperatureAnomalyType.NONE },
+          {
+            temperature: 2.5,
+            time: '09:00',
+            anomaly: TemperatureAnomalyType.NONE,
+          },
+          {
+            temperature: 3.0,
+            time: '15:00',
+            anomaly: TemperatureAnomalyType.NONE,
+          },
         ],
       } as unknown as ColdStorageTemperature;
 
@@ -623,8 +723,16 @@ describe('ColdStorageTemperatureService', () => {
       const updatedTemperature = {
         ...existingTemperatureWithMultipleRecords,
         temperatureRecords: [
-          { temperature: 3.0, time: '15:00', anomaly: TemperatureAnomalyType.NONE }, // Conservé
-          { temperature: 3.5, time: '09:00', anomaly: TemperatureAnomalyType.NONE }, // Remplacé et trié
+          {
+            temperature: 3.0,
+            time: '15:00',
+            anomaly: TemperatureAnomalyType.NONE,
+          }, // Conservé
+          {
+            temperature: 3.5,
+            time: '09:00',
+            anomaly: TemperatureAnomalyType.NONE,
+          }, // Remplacé et trié
         ],
       } as unknown as ColdStorageTemperature;
 
@@ -635,7 +743,10 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.updateOneBy.mockResolvedValue(true);
 
       // Act
-      const result = await service.updateTemperature(mockTemperatureId, replacementUpdate);
+      const result = await service.updateTemperature(
+        mockTemperatureId,
+        replacementUpdate,
+      );
 
       // Assert
       expect(temperatureRepository.updateOneBy).toHaveBeenCalledWith(
@@ -645,20 +756,26 @@ describe('ColdStorageTemperatureService', () => {
             expect.objectContaining({ time: '09:00', temperature: 3.5 }),
             expect.objectContaining({ time: '15:00', temperature: 3.0 }),
           ]),
-        })
+        }),
       );
       expect(result).toEqual(updatedTemperature);
     });
 
     it('devrait lancer NotFoundException si la mise à jour échoue', async () => {
       // Arrange
-      mockTemperatureRepository.findOneById.mockResolvedValue(mockColdStorageTemperature);
+      mockTemperatureRepository.findOneById.mockResolvedValue(
+        mockColdStorageTemperature,
+      );
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
       mockTemperatureRepository.updateOneBy.mockResolvedValue(false);
 
       // Act & Assert
-      await expect(service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO)).rejects.toThrow(NotFoundException);
-      await expect(service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO)).rejects.toThrow('Update failed');
+      await expect(
+        service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.updateTemperature(mockTemperatureId, mockTemperaturePatchDTO),
+      ).rejects.toThrow('Update failed');
     });
   });
 
@@ -676,13 +793,17 @@ describe('ColdStorageTemperatureService', () => {
       });
     });
 
-    it('devrait lancer NotFoundException si la température n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si la température n'existe pas", async () => {
       // Arrange
       mockTemperatureRepository.deleteOneBy.mockResolvedValue(false);
 
       // Act & Assert
-      await expect(service.deleteColdStorageTemperature(mockTemperatureId)).rejects.toThrow(NotFoundException);
-      await expect(service.deleteColdStorageTemperature(mockTemperatureId)).rejects.toThrow('Temperature record not found');
+      await expect(
+        service.deleteColdStorageTemperature(mockTemperatureId),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.deleteColdStorageTemperature(mockTemperatureId),
+      ).rejects.toThrow('Temperature record not found');
     });
 
     it('devrait gérer les erreurs de repository', async () => {
@@ -691,7 +812,9 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.deleteOneBy.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.deleteColdStorageTemperature(mockTemperatureId)).rejects.toThrow(InternalServerErrorException);
+      await expect(
+        service.deleteColdStorageTemperature(mockTemperatureId),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 
@@ -714,8 +837,16 @@ describe('ColdStorageTemperatureService', () => {
           ...mockColdStorageTemperature,
           date: new Date('2024-03-20'),
           temperatureRecords: [
-            { temperature: 2.0, time: '09:00', anomaly: TemperatureAnomalyType.NONE },
-            { temperature: 3.0, time: '15:00', anomaly: TemperatureAnomalyType.NONE },
+            {
+              temperature: 2.0,
+              time: '09:00',
+              anomaly: TemperatureAnomalyType.NONE,
+            },
+            {
+              temperature: 3.0,
+              time: '15:00',
+              anomaly: TemperatureAnomalyType.NONE,
+            },
           ],
         } as unknown as ColdStorageTemperature,
       ];
@@ -724,7 +855,10 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.findManyBy.mockResolvedValue(mockTemperatures);
 
       // Act
-      const result = await service.getTemperatureStatusRange('2024-03-20', '2024-03-20');
+      const result = await service.getTemperatureStatusRange(
+        '2024-03-20',
+        '2024-03-20',
+      );
 
       // Assert
       expect(result).toHaveLength(1);
@@ -737,7 +871,7 @@ describe('ColdStorageTemperatureService', () => {
       });
     });
 
-    it('devrait retourner MISSING quand il n\'y a pas assez de relevés', async () => {
+    it("devrait retourner MISSING quand il n'y a pas assez de relevés", async () => {
       // Arrange
       const mockColdStorages = [mockColdStorage];
       const mockTemperatures = [
@@ -745,7 +879,11 @@ describe('ColdStorageTemperatureService', () => {
           ...mockColdStorageTemperature,
           date: new Date('2024-03-20'),
           temperatureRecords: [
-            { temperature: 2.0, time: '09:00', anomaly: TemperatureAnomalyType.NONE },
+            {
+              temperature: 2.0,
+              time: '09:00',
+              anomaly: TemperatureAnomalyType.NONE,
+            },
           ], // Seulement 1 relevé (< 2)
         } as unknown as ColdStorageTemperature,
       ];
@@ -754,7 +892,10 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.findManyBy.mockResolvedValue(mockTemperatures);
 
       // Act
-      const result = await service.getTemperatureStatusRange('2024-03-20', '2024-03-20');
+      const result = await service.getTemperatureStatusRange(
+        '2024-03-20',
+        '2024-03-20',
+      );
 
       // Assert
       expect(result[0].status).toBe(TemperatureStatus.MISSING);
@@ -769,8 +910,16 @@ describe('ColdStorageTemperatureService', () => {
           ...mockColdStorageTemperature,
           date: new Date('2024-03-20'),
           temperatureRecords: [
-            { temperature: 2.0, time: '09:00', anomaly: TemperatureAnomalyType.NONE },
-            { temperature: 8.0, time: '15:00', anomaly: TemperatureAnomalyType.TOO_HIGH },
+            {
+              temperature: 2.0,
+              time: '09:00',
+              anomaly: TemperatureAnomalyType.NONE,
+            },
+            {
+              temperature: 8.0,
+              time: '15:00',
+              anomaly: TemperatureAnomalyType.TOO_HIGH,
+            },
           ],
         } as unknown as ColdStorageTemperature,
       ];
@@ -779,7 +928,10 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.findManyBy.mockResolvedValue(mockTemperatures);
 
       // Act
-      const result = await service.getTemperatureStatusRange('2024-03-20', '2024-03-20');
+      const result = await service.getTemperatureStatusRange(
+        '2024-03-20',
+        '2024-03-20',
+      );
 
       // Assert
       expect(result[0].status).toBe(TemperatureStatus.WARNING);
@@ -794,8 +946,16 @@ describe('ColdStorageTemperatureService', () => {
           ...mockColdStorageTemperature,
           date: new Date('2024-03-20'),
           temperatureRecords: [
-            { temperature: 8.0, time: '09:00', anomaly: TemperatureAnomalyType.TOO_HIGH },
-            { temperature: -1.0, time: '15:00', anomaly: TemperatureAnomalyType.TOO_LOW },
+            {
+              temperature: 8.0,
+              time: '09:00',
+              anomaly: TemperatureAnomalyType.TOO_HIGH,
+            },
+            {
+              temperature: -1.0,
+              time: '15:00',
+              anomaly: TemperatureAnomalyType.TOO_LOW,
+            },
           ],
         } as unknown as ColdStorageTemperature,
       ];
@@ -804,14 +964,17 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.findManyBy.mockResolvedValue(mockTemperatures);
 
       // Act
-      const result = await service.getTemperatureStatusRange('2024-03-20', '2024-03-20');
+      const result = await service.getTemperatureStatusRange(
+        '2024-03-20',
+        '2024-03-20',
+      );
 
       // Assert
       expect(result[0].status).toBe(TemperatureStatus.CRITICAL);
       expect(result[0].anomalyCount).toBe(2);
     });
 
-    it('devrait utiliser des dates par défaut si aucune n\'est fournie', async () => {
+    it("devrait utiliser des dates par défaut si aucune n'est fournie", async () => {
       // Arrange
       mockColdStorageRepository.findAll.mockResolvedValue([]);
       mockTemperatureRepository.findManyBy.mockResolvedValue([]);
@@ -826,7 +989,7 @@ describe('ColdStorageTemperatureService', () => {
             $gte: expect.any(Date),
             $lte: expect.any(Date),
           }),
-        })
+        }),
       );
       expect(result).toBeDefined();
     });
@@ -837,11 +1000,18 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.findManyBy.mockResolvedValue([]);
 
       // Act
-      const result = await service.getTemperatureStatusRange('2024-03-20', '2024-03-22');
+      const result = await service.getTemperatureStatusRange(
+        '2024-03-20',
+        '2024-03-22',
+      );
 
       // Assert
       expect(result).toHaveLength(3); // 3 jours
-      expect(result.map(r => r.date)).toEqual(['2024-03-20', '2024-03-21', '2024-03-22']);
+      expect(result.map((r) => r.date)).toEqual([
+        '2024-03-20',
+        '2024-03-21',
+        '2024-03-22',
+      ]);
     });
 
     it('devrait gérer les erreurs lors de la récupération du statut', async () => {
@@ -850,7 +1020,9 @@ describe('ColdStorageTemperatureService', () => {
       mockColdStorageRepository.findAll.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.getTemperatureStatusRange()).rejects.toThrow(InternalServerErrorException);
+      await expect(service.getTemperatureStatusRange()).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
@@ -862,7 +1034,9 @@ describe('ColdStorageTemperatureService', () => {
 
       // Act & Assert
       const filter = new DateRangeFilter({ year: 2024, month: 3, day: 20 });
-      await expect(service.getAllColdStorageTemperatures(filter)).rejects.toThrow(InternalServerErrorException);
+      await expect(
+        service.getAllColdStorageTemperatures(filter),
+      ).rejects.toThrow(InternalServerErrorException);
     });
 
     it('devrait préserver les HttpExceptions existantes', async () => {
@@ -871,18 +1045,25 @@ describe('ColdStorageTemperatureService', () => {
       mockTemperatureRepository.findOneById.mockRejectedValue(httpException);
 
       // Act & Assert
-      await expect(service.getColdStorageTemperatureById(mockTemperatureId)).rejects.toThrow(BadRequestException);
-      await expect(service.getColdStorageTemperatureById(mockTemperatureId)).rejects.toThrow('Erreur HTTP existante');
+      await expect(
+        service.getColdStorageTemperatureById(mockTemperatureId),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.getColdStorageTemperatureById(mockTemperatureId),
+      ).rejects.toThrow('Erreur HTTP existante');
     });
   });
 
   describe('Tests de performance et cas limites', () => {
     it('devrait gérer un grand nombre de relevés de température', async () => {
       // Arrange
-      const largeTemperatureRecords = Array.from({ length: 24 }, (_, index) => ({
-        temperature: 2.5,
-        time: `${index.toString().padStart(2, '0')}:00`,
-      }));
+      const largeTemperatureRecords = Array.from(
+        { length: 24 },
+        (_, index) => ({
+          temperature: 2.5,
+          time: `${index.toString().padStart(2, '0')}:00`,
+        }),
+      );
 
       const largeTempDTO = {
         ...mockTemperatureDTO,
@@ -891,7 +1072,9 @@ describe('ColdStorageTemperatureService', () => {
 
       mockColdStorageRepository.findOneById.mockResolvedValue(mockColdStorage);
       mockTemperatureRepository.findOptionalBy.mockResolvedValue(null);
-      mockTemperatureRepository.insert.mockResolvedValue({ _id: mockTemperatureId });
+      mockTemperatureRepository.insert.mockResolvedValue({
+        _id: mockTemperatureId,
+      });
       mockTemperatureRepository.findOneById.mockResolvedValue({
         ...mockColdStorageTemperature,
         temperatureRecords: largeTemperatureRecords,
@@ -906,15 +1089,15 @@ describe('ColdStorageTemperatureService', () => {
       expect(temperatureRepository.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           temperatureRecords: expect.arrayContaining(
-            largeTemperatureRecords.map(record => 
+            largeTemperatureRecords.map((record) =>
               expect.objectContaining({
                 temperature: record.temperature,
                 time: record.time,
                 anomaly: TemperatureAnomalyType.NONE,
-              })
-            )
+              }),
+            ),
           ),
-        })
+        }),
       );
     });
 
@@ -934,7 +1117,9 @@ describe('ColdStorageTemperatureService', () => {
 
       mockColdStorageRepository.findOneById.mockResolvedValue(negativeChamber);
       mockTemperatureRepository.findOptionalBy.mockResolvedValue(null);
-      mockTemperatureRepository.insert.mockResolvedValue({ _id: mockTemperatureId });
+      mockTemperatureRepository.insert.mockResolvedValue({
+        _id: mockTemperatureId,
+      });
       mockTemperatureRepository.findOneById.mockResolvedValue({
         ...mockColdStorageTemperature,
         coldStorageId: negativeChamber,
@@ -952,7 +1137,7 @@ describe('ColdStorageTemperatureService', () => {
               anomaly: TemperatureAnomalyType.NONE,
             }),
           ]),
-        })
+        }),
       );
     });
   });

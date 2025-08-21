@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, ConflictException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ColdStorageService } from '../modules/cold.storage/services/cold.storage.service';
 import { ColdStorageRepository } from '../modules/cold.storage/repositories/cold.storage.repository';
 import { ColdStorage } from '../modules/cold.storage/models/cold.storage.model';
@@ -90,11 +95,13 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.findAll.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.getAllColdStorages()).rejects.toThrow(InternalServerErrorException);
+      await expect(service.getAllColdStorages()).rejects.toThrow(
+        InternalServerErrorException,
+      );
       expect(repository.findAll).toHaveBeenCalledTimes(1);
     });
 
-    it('devrait retourner un tableau vide si aucun cold storage n\'existe', async () => {
+    it("devrait retourner un tableau vide si aucun cold storage n'existe", async () => {
       // Arrange
       mockColdStorageRepository.findAll.mockResolvedValue([]);
 
@@ -122,13 +129,17 @@ describe('ColdStorageService', () => {
       expect(result).toEqual(mockColdStorage);
     });
 
-    it('devrait lancer NotFoundException si le cold storage n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si le cold storage n'existe pas", async () => {
       // Arrange
       mockColdStorageRepository.findOneById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.getColdStorageById(mockColdStorageId)).rejects.toThrow(NotFoundException);
-      await expect(service.getColdStorageById(mockColdStorageId)).rejects.toThrow(`Cold storage ${mockColdStorageId} not found`);
+      await expect(
+        service.getColdStorageById(mockColdStorageId),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.getColdStorageById(mockColdStorageId),
+      ).rejects.toThrow(`Cold storage ${mockColdStorageId} not found`);
       expect(repository.findOneById).toHaveBeenCalledWith(mockColdStorageId);
     });
 
@@ -138,7 +149,9 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.findOneById.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.getColdStorageById(mockColdStorageId)).rejects.toThrow(InternalServerErrorException);
+      await expect(
+        service.getColdStorageById(mockColdStorageId),
+      ).rejects.toThrow(InternalServerErrorException);
       expect(repository.findOneById).toHaveBeenCalledWith(mockColdStorageId);
     });
 
@@ -149,7 +162,9 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.findOneById.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.getColdStorageById(invalidId)).rejects.toThrow(BadRequestException);
+      await expect(service.getColdStorageById(invalidId)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(repository.findOneById).toHaveBeenCalledWith(invalidId);
     });
   });
@@ -175,11 +190,16 @@ describe('ColdStorageService', () => {
 
     it('devrait gérer les erreurs de validation lors de la création', async () => {
       // Arrange
-      const validationError = { name: 'ValidationError', message: 'Données invalides' };
+      const validationError = {
+        name: 'ValidationError',
+        message: 'Données invalides',
+      };
       mockColdStorageRepository.insert.mockRejectedValue(validationError);
 
       // Act & Assert
-      await expect(service.createColdStorage(mockColdStorageDTO)).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createColdStorage(mockColdStorageDTO),
+      ).rejects.toThrow(BadRequestException);
       expect(repository.insert).toHaveBeenCalledWith({
         name: mockColdStorageDTO.name,
         type: mockColdStorageDTO.type,
@@ -192,7 +212,9 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.insert.mockRejectedValue(duplicateError);
 
       // Act & Assert
-      await expect(service.createColdStorage(mockColdStorageDTO)).rejects.toThrow(ConflictException);
+      await expect(
+        service.createColdStorage(mockColdStorageDTO),
+      ).rejects.toThrow(ConflictException);
       expect(repository.insert).toHaveBeenCalledWith({
         name: mockColdStorageDTO.name,
         type: mockColdStorageDTO.type,
@@ -202,15 +224,20 @@ describe('ColdStorageService', () => {
     it('devrait créer un cold storage avec tous les types disponibles', async () => {
       // Test avec chaque type de cold storage
       const types = Object.values(ColdStorageType);
-      
+
       for (const type of types) {
         // Arrange
         const dtoWithType = { ...mockColdStorageDTO, type };
         const mockInsertResult = { _id: mockColdStorageId };
-        const mockStorageWithType = { ...mockColdStorage, type } as unknown as ColdStorage;
-        
+        const mockStorageWithType = {
+          ...mockColdStorage,
+          type,
+        } as unknown as ColdStorage;
+
         mockColdStorageRepository.insert.mockResolvedValue(mockInsertResult);
-        mockColdStorageRepository.findOneById.mockResolvedValue(mockStorageWithType);
+        mockColdStorageRepository.findOneById.mockResolvedValue(
+          mockStorageWithType,
+        );
 
         // Act
         const result = await service.createColdStorage(dtoWithType);
@@ -231,7 +258,9 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.findOneById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.createColdStorage(mockColdStorageDTO)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.createColdStorage(mockColdStorageDTO),
+      ).rejects.toThrow(NotFoundException);
       expect(repository.insert).toHaveBeenCalledWith({
         name: mockColdStorageDTO.name,
         type: mockColdStorageDTO.type,
@@ -244,11 +273,19 @@ describe('ColdStorageService', () => {
     it('devrait mettre à jour un cold storage avec succès', async () => {
       // Arrange
       mockColdStorageRepository.updateOneBy.mockResolvedValue(true);
-      const updatedColdStorage = { ...mockColdStorage, ...mockColdStoragePatchDTO } as unknown as ColdStorage;
-      mockColdStorageRepository.findOneById.mockResolvedValue(updatedColdStorage);
+      const updatedColdStorage = {
+        ...mockColdStorage,
+        ...mockColdStoragePatchDTO,
+      } as unknown as ColdStorage;
+      mockColdStorageRepository.findOneById.mockResolvedValue(
+        updatedColdStorage,
+      );
 
       // Act
-      const result = await service.updateColdStorage(mockColdStorageId, mockColdStoragePatchDTO);
+      const result = await service.updateColdStorage(
+        mockColdStorageId,
+        mockColdStoragePatchDTO,
+      );
 
       // Assert
       expect(repository.updateOneBy).toHaveBeenCalledWith(
@@ -259,7 +296,7 @@ describe('ColdStorageService', () => {
       expect(result).toEqual(updatedColdStorage);
     });
 
-    it('devrait lancer NotFoundException si le cold storage à mettre à jour n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si le cold storage à mettre à jour n'existe pas", async () => {
       // Arrange
       mockColdStorageRepository.updateOneBy.mockResolvedValue(false);
 
@@ -278,13 +315,23 @@ describe('ColdStorageService', () => {
 
     it('devrait mettre à jour seulement le nom', async () => {
       // Arrange
-      const nameOnlyUpdate: ColdStoragePatchDTO = { name: 'Nouveau nom seulement' };
+      const nameOnlyUpdate: ColdStoragePatchDTO = {
+        name: 'Nouveau nom seulement',
+      };
       mockColdStorageRepository.updateOneBy.mockResolvedValue(true);
-      const updatedColdStorage = { ...mockColdStorage, name: nameOnlyUpdate.name } as unknown as ColdStorage;
-      mockColdStorageRepository.findOneById.mockResolvedValue(updatedColdStorage);
+      const updatedColdStorage = {
+        ...mockColdStorage,
+        name: nameOnlyUpdate.name,
+      } as unknown as ColdStorage;
+      mockColdStorageRepository.findOneById.mockResolvedValue(
+        updatedColdStorage,
+      );
 
       // Act
-      const result = await service.updateColdStorage(mockColdStorageId, nameOnlyUpdate);
+      const result = await service.updateColdStorage(
+        mockColdStorageId,
+        nameOnlyUpdate,
+      );
 
       // Assert
       expect(repository.updateOneBy).toHaveBeenCalledWith(
@@ -296,13 +343,23 @@ describe('ColdStorageService', () => {
 
     it('devrait mettre à jour seulement le type', async () => {
       // Arrange
-      const typeOnlyUpdate: ColdStoragePatchDTO = { type: ColdStorageType.NEGATIVE_CHAMBER };
+      const typeOnlyUpdate: ColdStoragePatchDTO = {
+        type: ColdStorageType.NEGATIVE_CHAMBER,
+      };
       mockColdStorageRepository.updateOneBy.mockResolvedValue(true);
-      const updatedColdStorage = { ...mockColdStorage, type: typeOnlyUpdate.type } as unknown as ColdStorage;
-      mockColdStorageRepository.findOneById.mockResolvedValue(updatedColdStorage);
+      const updatedColdStorage = {
+        ...mockColdStorage,
+        type: typeOnlyUpdate.type,
+      } as unknown as ColdStorage;
+      mockColdStorageRepository.findOneById.mockResolvedValue(
+        updatedColdStorage,
+      );
 
       // Act
-      const result = await service.updateColdStorage(mockColdStorageId, typeOnlyUpdate);
+      const result = await service.updateColdStorage(
+        mockColdStorageId,
+        typeOnlyUpdate,
+      );
 
       // Assert
       expect(repository.updateOneBy).toHaveBeenCalledWith(
@@ -314,7 +371,10 @@ describe('ColdStorageService', () => {
 
     it('devrait gérer les erreurs de validation lors de la mise à jour', async () => {
       // Arrange
-      const validationError = { name: 'ValidationError', message: 'Données invalides' };
+      const validationError = {
+        name: 'ValidationError',
+        message: 'Données invalides',
+      };
       mockColdStorageRepository.updateOneBy.mockRejectedValue(validationError);
 
       // Act & Assert
@@ -374,13 +434,17 @@ describe('ColdStorageService', () => {
       expect(repository.deleteOneBy).toHaveBeenCalledTimes(1);
     });
 
-    it('devrait lancer NotFoundException si le cold storage à supprimer n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si le cold storage à supprimer n'existe pas", async () => {
       // Arrange
       mockColdStorageRepository.deleteOneBy.mockResolvedValue(false);
 
       // Act & Assert
-      await expect(service.deleteColdStorage(mockColdStorageId)).rejects.toThrow(NotFoundException);
-      await expect(service.deleteColdStorage(mockColdStorageId)).rejects.toThrow(`Cold storage ${mockColdStorageId} not found`);
+      await expect(
+        service.deleteColdStorage(mockColdStorageId),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.deleteColdStorage(mockColdStorageId),
+      ).rejects.toThrow(`Cold storage ${mockColdStorageId} not found`);
       expect(repository.deleteOneBy).toHaveBeenCalledWith({
         _id: mockColdStorageId,
       });
@@ -392,7 +456,9 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.deleteOneBy.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.deleteColdStorage(mockColdStorageId)).rejects.toThrow(InternalServerErrorException);
+      await expect(
+        service.deleteColdStorage(mockColdStorageId),
+      ).rejects.toThrow(InternalServerErrorException);
       expect(repository.deleteOneBy).toHaveBeenCalledWith({
         _id: mockColdStorageId,
       });
@@ -405,7 +471,9 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.deleteOneBy.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.deleteColdStorage(invalidId)).rejects.toThrow(BadRequestException);
+      await expect(service.deleteColdStorage(invalidId)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(repository.deleteOneBy).toHaveBeenCalledWith({
         _id: invalidId,
       });
@@ -419,7 +487,9 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.findAll.mockRejectedValue(unexpectedError);
 
       // Act & Assert
-      await expect(service.getAllColdStorages()).rejects.toThrow(InternalServerErrorException);
+      await expect(service.getAllColdStorages()).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
 
     it('devrait préserver les HttpExceptions existantes', async () => {
@@ -428,18 +498,24 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.findAll.mockRejectedValue(httpException);
 
       // Act & Assert
-      await expect(service.getAllColdStorages()).rejects.toThrow(BadRequestException);
-      await expect(service.getAllColdStorages()).rejects.toThrow('Erreur HTTP existante');
+      await expect(service.getAllColdStorages()).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.getAllColdStorages()).rejects.toThrow(
+        'Erreur HTTP existante',
+      );
     });
   });
 
   describe('Intégration avec BaseService', () => {
-    it('devrait utiliser assertFound pour vérifier l\'existence des entités', async () => {
+    it("devrait utiliser assertFound pour vérifier l'existence des entités", async () => {
       // Arrange
       mockColdStorageRepository.findOneById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.getColdStorageById(mockColdStorageId)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.getColdStorageById(mockColdStorageId),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('devrait utiliser handleError pour gérer les exceptions', async () => {
@@ -448,19 +524,26 @@ describe('ColdStorageService', () => {
       mockColdStorageRepository.findAll.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(service.getAllColdStorages()).rejects.toThrow(InternalServerErrorException);
+      await expect(service.getAllColdStorages()).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
   describe('Tests de performance et limites', () => {
     it('devrait gérer un grand nombre de cold storages', async () => {
       // Arrange
-      const largeColdStorageArray = Array.from({ length: 1000 }, (_, index) => ({
-        ...mockColdStorage,
-        _id: `60f1b2b3b3b3b3b3b3b3b3${index.toString().padStart(3, '0')}`,
-        name: `Cold Storage ${index}`,
-      }));
-      mockColdStorageRepository.findAll.mockResolvedValue(largeColdStorageArray);
+      const largeColdStorageArray = Array.from(
+        { length: 1000 },
+        (_, index) => ({
+          ...mockColdStorage,
+          _id: `60f1b2b3b3b3b3b3b3b3b3${index.toString().padStart(3, '0')}`,
+          name: `Cold Storage ${index}`,
+        }),
+      );
+      mockColdStorageRepository.findAll.mockResolvedValue(
+        largeColdStorageArray,
+      );
 
       // Act
       const result = await service.getAllColdStorages();
@@ -477,10 +560,15 @@ describe('ColdStorageService', () => {
         type: ColdStorageType.POSITIVE_CHAMBER,
       };
       const mockInsertResult = { _id: mockColdStorageId };
-      const mockStorageWithLongName = { ...mockColdStorage, name: longNameDTO.name } as unknown as ColdStorage;
-      
+      const mockStorageWithLongName = {
+        ...mockColdStorage,
+        name: longNameDTO.name,
+      } as unknown as ColdStorage;
+
       mockColdStorageRepository.insert.mockResolvedValue(mockInsertResult);
-      mockColdStorageRepository.findOneById.mockResolvedValue(mockStorageWithLongName);
+      mockColdStorageRepository.findOneById.mockResolvedValue(
+        mockStorageWithLongName,
+      );
 
       // Act
       const result = await service.createColdStorage(longNameDTO);

@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, ConflictException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { FryerService } from '../modules/fryer/services/fryer.service';
 import { FryerRepository } from '../modules/fryer/repositories/fryer.repository';
 import { Fryer } from '../modules/fryer/models/fryer.model';
@@ -75,7 +80,7 @@ describe('FryerService', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('devrait retourner un tableau vide si aucune friteuse n\'existe', async () => {
+    it("devrait retourner un tableau vide si aucune friteuse n'existe", async () => {
       // Arrange
       mockFryerRepository.findAll.mockResolvedValue([]);
 
@@ -94,7 +99,9 @@ describe('FryerService', () => {
       mockFryerRepository.findAll.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.getAllFryers()).rejects.toThrow(InternalServerErrorException);
+      await expect(service.getAllFryers()).rejects.toThrow(
+        InternalServerErrorException,
+      );
       expect(repository.findAll).toHaveBeenCalledTimes(1);
     });
 
@@ -105,7 +112,9 @@ describe('FryerService', () => {
 
       // Act & Assert
       await expect(service.getAllFryers()).rejects.toThrow(BadRequestException);
-      await expect(service.getAllFryers()).rejects.toThrow('Erreur HTTP existante');
+      await expect(service.getAllFryers()).rejects.toThrow(
+        'Erreur HTTP existante',
+      );
     });
   });
 
@@ -123,13 +132,17 @@ describe('FryerService', () => {
       expect(result).toEqual(mockFryer);
     });
 
-    it('devrait lancer NotFoundException si la friteuse n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si la friteuse n'existe pas", async () => {
       // Arrange
       mockFryerRepository.findOneById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(NotFoundException);
-      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(`Fryer ${mockFryerId} not found`);
+      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(
+        `Fryer ${mockFryerId} not found`,
+      );
       expect(repository.findOneById).toHaveBeenCalledWith(mockFryerId);
     });
 
@@ -139,7 +152,9 @@ describe('FryerService', () => {
       mockFryerRepository.findOneById.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(InternalServerErrorException);
+      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
       expect(repository.findOneById).toHaveBeenCalledWith(mockFryerId);
     });
 
@@ -150,7 +165,9 @@ describe('FryerService', () => {
       mockFryerRepository.findOneById.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.getFryerById(invalidId)).rejects.toThrow(BadRequestException);
+      await expect(service.getFryerById(invalidId)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(repository.findOneById).toHaveBeenCalledWith(invalidId);
     });
 
@@ -160,8 +177,12 @@ describe('FryerService', () => {
       mockFryerRepository.findOneById.mockRejectedValue(httpError);
 
       // Act & Assert
-      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(BadRequestException);
-      await expect(service.getFryerById(mockFryerId)).rejects.toThrow('Erreur HTTP existante');
+      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(
+        'Erreur HTTP existante',
+      );
     });
   });
 
@@ -185,11 +206,16 @@ describe('FryerService', () => {
 
     it('devrait gérer les erreurs de validation lors de la création', async () => {
       // Arrange
-      const validationError = { name: 'ValidationError', message: 'Données invalides' };
+      const validationError = {
+        name: 'ValidationError',
+        message: 'Données invalides',
+      };
       mockFryerRepository.insert.mockRejectedValue(validationError);
 
       // Act & Assert
-      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow(BadRequestException);
+      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(repository.insert).toHaveBeenCalledWith({
         name: mockFryerDTO.name,
       });
@@ -201,7 +227,9 @@ describe('FryerService', () => {
       mockFryerRepository.insert.mockRejectedValue(duplicateError);
 
       // Act & Assert
-      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow(ConflictException);
+      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow(
+        ConflictException,
+      );
       expect(repository.insert).toHaveBeenCalledWith({
         name: mockFryerDTO.name,
       });
@@ -213,8 +241,11 @@ describe('FryerService', () => {
         name: 'x'.repeat(50), // Limite maximale selon le DTO
       };
       const mockInsertResult = { _id: mockFryerId };
-      const mockFryerWithLongName = { ...mockFryer, name: longNameDTO.name } as unknown as Fryer;
-      
+      const mockFryerWithLongName = {
+        ...mockFryer,
+        name: longNameDTO.name,
+      } as unknown as Fryer;
+
       mockFryerRepository.insert.mockResolvedValue(mockInsertResult);
       mockFryerRepository.findOneById.mockResolvedValue(mockFryerWithLongName);
 
@@ -248,13 +279,18 @@ describe('FryerService', () => {
 
     it('devrait créer plusieurs friteuses avec des noms différents', async () => {
       // Arrange
-      const fryerNames = ['Friteuse 1', 'Friteuse 2', 'Friteuse Principale', 'Friteuse Secondaire'];
-      
+      const fryerNames = [
+        'Friteuse 1',
+        'Friteuse 2',
+        'Friteuse Principale',
+        'Friteuse Secondaire',
+      ];
+
       for (const name of fryerNames) {
         const dto = { name };
         const mockInsertResult = { _id: mockFryerId };
         const mockCreatedFryer = { ...mockFryer, name } as unknown as Fryer;
-        
+
         mockFryerRepository.insert.mockResolvedValue(mockInsertResult);
         mockFryerRepository.findOneById.mockResolvedValue(mockCreatedFryer);
 
@@ -272,8 +308,12 @@ describe('FryerService', () => {
       mockFryerRepository.insert.mockRejectedValue(httpError);
 
       // Act & Assert
-      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow(BadRequestException);
-      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow('Erreur HTTP existante');
+      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow(
+        'Erreur HTTP existante',
+      );
     });
   });
 
@@ -281,8 +321,11 @@ describe('FryerService', () => {
     it('devrait mettre à jour une friteuse avec succès', async () => {
       // Arrange
       const updateDTO: FryerDTO = { name: 'Friteuse Modifiée' };
-      const updatedFryer = { ...mockFryer, name: updateDTO.name } as unknown as Fryer;
-      
+      const updatedFryer = {
+        ...mockFryer,
+        name: updateDTO.name,
+      } as unknown as Fryer;
+
       mockFryerRepository.updateOneBy.mockResolvedValue(true);
       mockFryerRepository.findOneById.mockResolvedValue(updatedFryer);
 
@@ -299,14 +342,18 @@ describe('FryerService', () => {
       expect(result.name).toBe(updateDTO.name);
     });
 
-    it('devrait lancer NotFoundException si la friteuse à mettre à jour n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si la friteuse à mettre à jour n'existe pas", async () => {
       // Arrange
       const updateDTO: FryerDTO = { name: 'Friteuse Modifiée' };
       mockFryerRepository.updateOneBy.mockResolvedValue(false);
 
       // Act & Assert
-      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(NotFoundException);
-      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(`Fryer ${mockFryerId} not found`);
+      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(
+        `Fryer ${mockFryerId} not found`,
+      );
       expect(repository.updateOneBy).toHaveBeenCalledWith(
         { _id: mockFryerId },
         updateDTO,
@@ -316,11 +363,16 @@ describe('FryerService', () => {
     it('devrait gérer les erreurs de validation lors de la mise à jour', async () => {
       // Arrange
       const updateDTO: FryerDTO = { name: 'Friteuse Modifiée' };
-      const validationError = { name: 'ValidationError', message: 'Données invalides' };
+      const validationError = {
+        name: 'ValidationError',
+        message: 'Données invalides',
+      };
       mockFryerRepository.updateOneBy.mockRejectedValue(validationError);
 
       // Act & Assert
-      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(BadRequestException);
+      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(repository.updateOneBy).toHaveBeenCalledWith(
         { _id: mockFryerId },
         updateDTO,
@@ -334,7 +386,9 @@ describe('FryerService', () => {
       mockFryerRepository.updateOneBy.mockRejectedValue(duplicateError);
 
       // Act & Assert
-      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(ConflictException);
+      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(
+        ConflictException,
+      );
       expect(repository.updateOneBy).toHaveBeenCalledWith(
         { _id: mockFryerId },
         updateDTO,
@@ -344,8 +398,11 @@ describe('FryerService', () => {
     it('devrait mettre à jour avec un nom très long', async () => {
       // Arrange
       const longNameDTO: FryerDTO = { name: 'x'.repeat(50) };
-      const updatedFryer = { ...mockFryer, name: longNameDTO.name } as unknown as Fryer;
-      
+      const updatedFryer = {
+        ...mockFryer,
+        name: longNameDTO.name,
+      } as unknown as Fryer;
+
       mockFryerRepository.updateOneBy.mockResolvedValue(true);
       mockFryerRepository.findOneById.mockResolvedValue(updatedFryer);
 
@@ -361,10 +418,14 @@ describe('FryerService', () => {
       // Arrange
       const updateDTO: FryerDTO = { name: 'Friteuse Modifiée' };
       mockFryerRepository.updateOneBy.mockResolvedValue(true);
-      mockFryerRepository.findOneById.mockRejectedValue(new Error('Erreur de récupération'));
+      mockFryerRepository.findOneById.mockRejectedValue(
+        new Error('Erreur de récupération'),
+      );
 
       // Act & Assert
-      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(InternalServerErrorException);
+      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(
+        InternalServerErrorException,
+      );
       expect(repository.updateOneBy).toHaveBeenCalledWith(
         { _id: mockFryerId },
         updateDTO,
@@ -378,8 +439,12 @@ describe('FryerService', () => {
       mockFryerRepository.updateOneBy.mockRejectedValue(httpError);
 
       // Act & Assert
-      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(BadRequestException);
-      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow('Erreur HTTP existante');
+      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(
+        'Erreur HTTP existante',
+      );
     });
   });
 
@@ -398,13 +463,17 @@ describe('FryerService', () => {
       expect(repository.deleteOneBy).toHaveBeenCalledTimes(1);
     });
 
-    it('devrait lancer NotFoundException si la friteuse à supprimer n\'existe pas', async () => {
+    it("devrait lancer NotFoundException si la friteuse à supprimer n'existe pas", async () => {
       // Arrange
       mockFryerRepository.deleteOneBy.mockResolvedValue(false);
 
       // Act & Assert
-      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(NotFoundException);
-      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(`Fryer ${mockFryerId} not found`);
+      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(
+        `Fryer ${mockFryerId} not found`,
+      );
       expect(repository.deleteOneBy).toHaveBeenCalledWith({
         _id: mockFryerId,
       });
@@ -416,7 +485,9 @@ describe('FryerService', () => {
       mockFryerRepository.deleteOneBy.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(InternalServerErrorException);
+      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
       expect(repository.deleteOneBy).toHaveBeenCalledWith({
         _id: mockFryerId,
       });
@@ -429,7 +500,9 @@ describe('FryerService', () => {
       mockFryerRepository.deleteOneBy.mockRejectedValue(mockError);
 
       // Act & Assert
-      await expect(service.deleteFryer(invalidId)).rejects.toThrow(BadRequestException);
+      await expect(service.deleteFryer(invalidId)).rejects.toThrow(
+        BadRequestException,
+      );
       expect(repository.deleteOneBy).toHaveBeenCalledWith({
         _id: invalidId,
       });
@@ -441,8 +514,12 @@ describe('FryerService', () => {
       mockFryerRepository.deleteOneBy.mockRejectedValue(httpError);
 
       // Act & Assert
-      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(BadRequestException);
-      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow('Erreur HTTP existante');
+      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(
+        'Erreur HTTP existante',
+      );
     });
 
     it('devrait supprimer plusieurs friteuses successivement', async () => {
@@ -466,7 +543,9 @@ describe('FryerService', () => {
       mockFryerRepository.findAll.mockRejectedValue(unexpectedError);
 
       // Act & Assert
-      await expect(service.getAllFryers()).rejects.toThrow(InternalServerErrorException);
+      await expect(service.getAllFryers()).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
 
     it('devrait préserver les HttpExceptions existantes', async () => {
@@ -476,7 +555,9 @@ describe('FryerService', () => {
 
       // Act & Assert
       await expect(service.getAllFryers()).rejects.toThrow(BadRequestException);
-      await expect(service.getAllFryers()).rejects.toThrow('Erreur HTTP existante');
+      await expect(service.getAllFryers()).rejects.toThrow(
+        'Erreur HTTP existante',
+      );
     });
 
     it('devrait gérer les erreurs de conflit (11000)', async () => {
@@ -485,17 +566,21 @@ describe('FryerService', () => {
       mockFryerRepository.insert.mockRejectedValue(conflictError);
 
       // Act & Assert
-      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow(ConflictException);
+      await expect(service.createFryer(mockFryerDTO)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
   describe('Intégration avec BaseService', () => {
-    it('devrait utiliser assertFound pour vérifier l\'existence des entités', async () => {
+    it("devrait utiliser assertFound pour vérifier l'existence des entités", async () => {
       // Arrange
       mockFryerRepository.findOneById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(NotFoundException);
+      await expect(service.getFryerById(mockFryerId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('devrait utiliser handleError pour gérer les exceptions', async () => {
@@ -504,7 +589,9 @@ describe('FryerService', () => {
       mockFryerRepository.findAll.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(service.getAllFryers()).rejects.toThrow(InternalServerErrorException);
+      await expect(service.getAllFryers()).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
 
     it('devrait utiliser assertFound dans updateFryer', async () => {
@@ -513,7 +600,9 @@ describe('FryerService', () => {
       mockFryerRepository.updateOneBy.mockResolvedValue(false);
 
       // Act & Assert
-      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(NotFoundException);
+      await expect(service.updateFryer(mockFryerId, updateDTO)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('devrait utiliser assertFound dans deleteFryer', async () => {
@@ -521,7 +610,9 @@ describe('FryerService', () => {
       mockFryerRepository.deleteOneBy.mockResolvedValue(false);
 
       // Act & Assert
-      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(NotFoundException);
+      await expect(service.deleteFryer(mockFryerId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -549,10 +640,15 @@ describe('FryerService', () => {
         name: 'Friteuse été & automne (spéciale) - N°1',
       };
       const mockInsertResult = { _id: mockFryerId };
-      const mockFryerWithSpecialName = { ...mockFryer, name: specialCharsDTO.name } as unknown as Fryer;
-      
+      const mockFryerWithSpecialName = {
+        ...mockFryer,
+        name: specialCharsDTO.name,
+      } as unknown as Fryer;
+
       mockFryerRepository.insert.mockResolvedValue(mockInsertResult);
-      mockFryerRepository.findOneById.mockResolvedValue(mockFryerWithSpecialName);
+      mockFryerRepository.findOneById.mockResolvedValue(
+        mockFryerWithSpecialName,
+      );
 
       // Act
       const result = await service.createFryer(specialCharsDTO);
@@ -574,7 +670,7 @@ describe('FryerService', () => {
       mockFryerRepository.insert.mockResolvedValue({ _id: mockFryerId });
 
       // Act
-      const results = await Promise.all(operations.map(op => op()));
+      const results = await Promise.all(operations.map((op) => op()));
 
       // Assert
       expect(results).toHaveLength(3);
@@ -593,8 +689,11 @@ describe('FryerService', () => {
 
       for (const dto of testCases) {
         const mockInsertResult = { _id: mockFryerId };
-        const mockCreatedFryer = { ...mockFryer, name: dto.name } as unknown as Fryer;
-        
+        const mockCreatedFryer = {
+          ...mockFryer,
+          name: dto.name,
+        } as unknown as Fryer;
+
         mockFryerRepository.insert.mockResolvedValue(mockInsertResult);
         mockFryerRepository.findOneById.mockResolvedValue(mockCreatedFryer);
 

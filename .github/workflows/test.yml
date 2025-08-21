@@ -1,0 +1,43 @@
+name: Tests Backend
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+
+    - name: Configuration de Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    - name: Installation des dépendances
+      run: npm ci
+
+    - name: Exécution des tests unitaires
+      run: npm run test
+
+    - name: Exécution des tests avec couverture
+      run: npm run test:cov
+
+    - name: Upload de la couverture vers Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./coverage
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
