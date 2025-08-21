@@ -17,7 +17,7 @@ export class TemperatureStatusResponseDTO {
   status: TemperatureStatus;
 
   @ApiProperty({
-    description: 'Nombre total d\'anomalies détectées dans la journée',
+    description: "Nombre total d'anomalies détectées dans la journée",
     example: 0,
     type: Number,
   })
@@ -36,4 +36,4 @@ export class TemperatureStatusResponseDTO {
     type: Number,
   })
   totalStoragesCount: number;
-} 
+}

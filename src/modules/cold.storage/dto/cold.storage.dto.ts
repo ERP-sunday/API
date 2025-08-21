@@ -1,6 +1,6 @@
-import {IsEnum, IsNotEmpty, IsString, MaxLength} from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { ColdStorageType } from 'src/common/utils/types/cold.storage.type';
-import {ValidationMessages} from "../../../common/utils/validation.messages";
+import { ValidationMessages } from '../../../common/utils/validation.messages';
 
 export class ColdStorageDTO {
   @IsString({ message: ValidationMessages.STRING })

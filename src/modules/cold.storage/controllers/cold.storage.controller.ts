@@ -15,7 +15,7 @@ import { ColdStorageService } from '../services/cold.storage.service';
 import { ColdStorage } from '../models/cold.storage.model';
 import { ColdStorageDTO } from '../dto/cold.storage.dto';
 import { BaseController } from '../../../common/controllers/base.controller';
-import {ColdStoragePatchDTO} from "../dto/cold.storage.patch.dto";
+import { ColdStoragePatchDTO } from '../dto/cold.storage.patch.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller({

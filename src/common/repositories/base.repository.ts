@@ -1,12 +1,16 @@
 import {
   Document,
   FilterQuery as MongooseFilterQuery,
-  Model, Types,
+  Model,
+  Types,
   UpdateQuery,
 } from 'mongoose';
 import {
-  BadRequestException, ConflictException,
-  Injectable, InternalServerErrorException, Logger,
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -23,7 +27,7 @@ export class BaseRepository<T extends Document> {
   async insertMany(data: Partial<T>[]): Promise<T[]> {
     try {
       const docs = await this.model.insertMany(data);
-      return docs.map((doc) => (doc.toObject({ versionKey: false }) as T));
+      return docs.map((doc) => doc.toObject({ versionKey: false }) as T);
     } catch (error) {
       this.handleError('insertMany', error);
     }
@@ -40,12 +44,15 @@ export class BaseRepository<T extends Document> {
     }
   }
 
-  async findOneBy(condition: FilterQuery<T>, params?: AdditionalParams): Promise<T> {
+  async findOneBy(
+    condition: FilterQuery<T>,
+    params?: AdditionalParams,
+  ): Promise<T> {
     try {
       const doc = await this.model
-          .findOne(condition)
-          .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
-          .populate(params?.populate || []);
+        .findOne(condition)
+        .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
+        .populate(params?.populate || []);
       if (!doc) throw new NotFoundException('Document not found');
       return this.transform(doc);
     } catch (error) {
@@ -53,12 +60,15 @@ export class BaseRepository<T extends Document> {
     }
   }
 
-  async findOptionalBy(condition: FilterQuery<T>, params?: AdditionalParams): Promise<T | null> {
+  async findOptionalBy(
+    condition: FilterQuery<T>,
+    params?: AdditionalParams,
+  ): Promise<T | null> {
     try {
       const doc = await this.model
-          .findOne(condition)
-          .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
-          .populate(params?.populate || []);
+        .findOne(condition)
+        .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
+        .populate(params?.populate || []);
       return doc ? this.transform(doc) : null;
     } catch (error) {
       this.handleError('findOptionalBy', error);
@@ -69,7 +79,10 @@ export class BaseRepository<T extends Document> {
     if (!Types.ObjectId.isValid(_id)) {
       throw new BadRequestException(`Invalid ObjectId format: ${_id}`);
     }
-    return this.findOneBy({ _id: new Types.ObjectId(_id) } as FilterQuery<T>, params);
+    return this.findOneBy(
+      { _id: new Types.ObjectId(_id) } as FilterQuery<T>,
+      params,
+    );
   }
 
   async deleteOneBy(condition: FilterQuery<T>): Promise<boolean> {
@@ -81,7 +94,10 @@ export class BaseRepository<T extends Document> {
     }
   }
 
-  async updateOneBy(condition: FilterQuery<T>, set: Partial<T>): Promise<boolean> {
+  async updateOneBy(
+    condition: FilterQuery<T>,
+    set: Partial<T>,
+  ): Promise<boolean> {
     try {
       const { modifiedCount } = await this.model.updateOne(condition, {
         $set: set,
@@ -93,12 +109,15 @@ export class BaseRepository<T extends Document> {
     }
   }
 
-  async findManyBy(condition: FilterQuery<T>, params?: AdditionalParams): Promise<T[]> {
+  async findManyBy(
+    condition: FilterQuery<T>,
+    params?: AdditionalParams,
+  ): Promise<T[]> {
     try {
       const docs = await this.model
-          .find(condition)
-          .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
-          .populate(params?.populate || []);
+        .find(condition)
+        .select(this.buildSelectString(params?.hiddenPropertiesToSelect))
+        .populate(params?.populate || []);
       return docs.map(this.transform);
     } catch (error) {
       this.handleError('findManyBy', error);
@@ -109,7 +128,10 @@ export class BaseRepository<T extends Document> {
     return this.findManyBy({}, params);
   }
 
-  async pushArray(condition: FilterQuery<T>, data: Partial<T>): Promise<boolean> {
+  async pushArray(
+    condition: FilterQuery<T>,
+    data: Partial<T>,
+  ): Promise<boolean> {
     try {
       const { modifiedCount } = await this.model.updateOne(condition, {
         $push: data,
@@ -121,7 +143,10 @@ export class BaseRepository<T extends Document> {
     }
   }
 
-  async pullArray(condition: FilterQuery<T>, data: Partial<T>): Promise<boolean> {
+  async pullArray(
+    condition: FilterQuery<T>,
+    data: Partial<T>,
+  ): Promise<boolean> {
     try {
       const { modifiedCount } = await this.model.updateOne(condition, {
         $pull: data,

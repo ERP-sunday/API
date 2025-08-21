@@ -15,7 +15,10 @@ export interface ColdStorageTemperatureRange {
   max: number; // Température maximale en °C
 }
 
-export const ColdStorageTemperatureRanges: Record<ColdStorageType, ColdStorageTemperatureRange> = {
+export const ColdStorageTemperatureRanges: Record<
+  ColdStorageType,
+  ColdStorageTemperatureRange
+> = {
   [ColdStorageType.POSITIVE_CHAMBER]: { min: 0, max: 4.5 },
   [ColdStorageType.NEGATIVE_CHAMBER]: { min: -24, max: -16 },
   [ColdStorageType.SHOWCASE]: { min: 0, max: 6.5 },

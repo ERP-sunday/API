@@ -54,12 +54,10 @@ export class ColdStorageTemperatureController extends BaseController<
 
   @Get('/status')
   @HttpCode(HttpStatus.OK)
-  async getTemperatureStatus(
-    @Query() query: TemperatureStatusQueryDTO
-  ) {
+  async getTemperatureStatus(@Query() query: TemperatureStatusQueryDTO) {
     const result = await this.service.getTemperatureStatusRange(
       query.startDate,
-      query.endDate
+      query.endDate,
     );
     return { error: null, data: result };
   }

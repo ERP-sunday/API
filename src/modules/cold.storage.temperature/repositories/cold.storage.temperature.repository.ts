@@ -7,7 +7,8 @@ import { ColdStorageTemperature } from '../models/cold.storage.temperature.model
 @Injectable()
 export class ColdStorageTemperatureRepository extends BaseRepository<ColdStorageTemperature> {
   constructor(
-    @InjectModel(ColdStorageTemperature.name) private coldStorageTemperatureModel: Model<ColdStorageTemperature>,
+    @InjectModel(ColdStorageTemperature.name)
+    private coldStorageTemperatureModel: Model<ColdStorageTemperature>,
   ) {
     super(coldStorageTemperatureModel);
   }
