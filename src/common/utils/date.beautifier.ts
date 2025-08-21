@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import {Schema} from "mongoose";
+import { Schema } from 'mongoose';
 
 export default class DateBeautifier {
   static getFullDate(): string {

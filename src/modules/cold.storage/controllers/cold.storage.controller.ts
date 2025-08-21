@@ -12,10 +12,9 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { ColdStorageService } from '../services/cold.storage.service';
-import { ColdStorage } from '../models/cold.storage.model';
 import { ColdStorageDTO } from '../dto/cold.storage.dto';
 import { BaseController } from '../../../common/controllers/base.controller';
-import {ColdStoragePatchDTO} from "../dto/cold.storage.patch.dto";
+import { ColdStoragePatchDTO } from '../dto/cold.storage.patch.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller({
@@ -23,7 +22,6 @@ import {ColdStoragePatchDTO} from "../dto/cold.storage.patch.dto";
   version: '1',
 })
 export class ColdStorageController extends BaseController<
-  ColdStorage,
   ColdStorageDTO,
   ColdStoragePatchDTO
 > {

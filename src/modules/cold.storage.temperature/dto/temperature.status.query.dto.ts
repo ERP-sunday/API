@@ -25,4 +25,4 @@ export class TemperatureStatusQueryDTO {
     message: 'La date de fin doit être au format YYYY-MM-DD',
   })
   endDate?: string;
-} 
+}

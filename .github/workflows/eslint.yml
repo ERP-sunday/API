@@ -1,0 +1,111 @@
+name: ESLint Code Quality Check
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.ts'
+      - '**/*.js'
+      - '.eslintrc.js'
+      - 'package*.json'
+      - 'tsconfig*.json'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.ts'
+      - '**/*.js'
+      - '.eslintrc.js'
+      - 'package*.json'
+      - 'tsconfig*.json'
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  eslint:
+    name: Run ESLint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run ESLint Check
+        run: npm run lint:check
+        continue-on-error: false
+        
+      - name: Generate ESLint report (JSON)
+        if: always()
+        run: |
+          npm run lint:check -- --format json --output-file eslint-report.json || true
+          
+      - name: Generate ESLint report (HTML)
+        if: always()
+        run: |
+          npm run lint:check -- --format html --output-file eslint-report.html || true
+          
+      - name: Upload ESLint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-results-${{ github.run_number }}
+          path: |
+            eslint-report.json
+            eslint-report.html
+          retention-days: 30
+          
+      - name: Comment PR with ESLint results
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const eslintResults = JSON.parse(fs.readFileSync('eslint-report.json', 'utf8'));
+              const errorCount = eslintResults.reduce((acc, file) => acc + file.errorCount, 0);
+              const warningCount = eslintResults.reduce((acc, file) => acc + file.warningCount, 0);
+              
+              if (errorCount > 0 || warningCount > 0) {
+                const body = `## 🔍 ESLint Results
+                
+                **Erreurs:** ${errorCount}
+                **Avertissements:** ${warningCount}
+                
+                ⚠️ Veuillez corriger les erreurs ESLint avant de merger cette PR.
+                
+                Vous pouvez corriger automatiquement certaines erreurs en exécutant :
+                \`\`\`bash
+                npm run lint
+                \`\`\`
+                
+                📊 [Rapport détaillé disponible dans les artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+                
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: body
+                });
+              }
+            } catch (error) {
+              console.log('Impossible de lire le rapport ESLint:', error.message);
+            }
+            
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f eslint-report.json ]; then
+            echo "📊 Rapport ESLint généré avec succès"
+            echo "📁 Fichier disponible dans les artifacts de cette action"
+          else
+            echo "❌ Erreur lors de la génération du rapport ESLint"
+          fi

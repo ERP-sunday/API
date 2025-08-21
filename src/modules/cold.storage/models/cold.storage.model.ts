@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import DateBeautifier, {addDateTrackingHooks} from 'src/common/utils/date.beautifier';
+import { addDateTrackingHooks } from 'src/common/utils/date.beautifier';
 import { ColdStorageType } from 'src/common/utils/types/cold.storage.type';
-import {BaseTimestampedSchema} from "../../../common/models/base-timestamped.schema";
+import { BaseTimestampedSchema } from '../../../common/models/base-timestamped.schema';
 
 @Schema()
 export class ColdStorage extends BaseTimestampedSchema {
@@ -13,4 +13,4 @@ export class ColdStorage extends BaseTimestampedSchema {
 }
 
 export const ColdStorageSchema = SchemaFactory.createForClass(ColdStorage);
-addDateTrackingHooks(ColdStorageSchema)
+addDateTrackingHooks(ColdStorageSchema);

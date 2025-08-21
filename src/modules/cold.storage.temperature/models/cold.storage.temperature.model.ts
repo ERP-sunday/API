@@ -4,7 +4,6 @@ import { addDateTrackingHooks } from 'src/common/utils/date.beautifier';
 import { BaseTimestampedSchema } from '../../../common/models/base-timestamped.schema';
 import { TemperatureRecord } from './temperature.record.model';
 
-
 @Schema()
 export class ColdStorageTemperature extends BaseTimestampedSchema {
   @Prop({ ref: 'ColdStorage', type: Types.ObjectId, required: true })

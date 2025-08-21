@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ColdStorageRepository } from 'src/modules/cold.storage/repositories/cold.storage.repository';
 import { ColdStorageDTO } from '../dto/cold.storage.dto';
 import { ColdStorage } from '../models/cold.storage.model';

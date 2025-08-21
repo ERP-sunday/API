@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import {addDateTrackingHooks} from 'src/common/utils/date.beautifier';
-import {BaseTimestampedSchema} from "../../../common/models/base-timestamped.schema";
+import { addDateTrackingHooks } from 'src/common/utils/date.beautifier';
+import { BaseTimestampedSchema } from '../../../common/models/base-timestamped.schema';
 
 @Schema()
 export class Fryer extends BaseTimestampedSchema {
@@ -9,4 +9,4 @@ export class Fryer extends BaseTimestampedSchema {
 }
 
 export const FryerSchema = SchemaFactory.createForClass(Fryer);
-addDateTrackingHooks(FryerSchema)
+addDateTrackingHooks(FryerSchema);

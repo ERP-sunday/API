@@ -1,8 +1,4 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { ValidationMessages } from 'src/common/utils/validation.messages';
 
 export class LoginDTO {
@@ -14,6 +10,3 @@ export class LoginDTO {
   @IsNotEmpty({ message: ValidationMessages.REQUIRED })
   password: string;
 }
-
-
-
