@@ -10,11 +10,16 @@ export enum OilTestMethod {
     DIGITAL_TESTER = 'DIGITAL_TESTER',
 }
 
-export enum OilCorrectiveActionType {
+export enum OilActionToDoType {
     NO_ACTION = 'NO_ACTION',
     REUSED = "REUSED",
     FILTERED_AND_REUSED = 'FILTERED_AND_REUSED',
     CHANGED = 'CHANGED'
+}
+
+export enum OilCorrectiveActionType {
+    NO_ACTION = 'NO_ACTION',
+    CHANGE_OIL = 'CHANGE_OIL'
 }
 
 @Schema()
@@ -22,14 +27,17 @@ export class OilCheck extends BaseTimestampedSchema {
   @Prop({ ref: Fryer.name, type: Types.ObjectId, required: true })
   fryer: Types.ObjectId;
 
-    @Prop({ enum: OilTestMethod, required: true })
-    testMethod: OilTestMethod;
+  @Prop({ enum: OilTestMethod, required: true })
+  testMethod: OilTestMethod;
 
   @Prop({ required: true, default: Date.now })
   date: Date;
 
-    @Prop({ required: true, enum: OilCorrectiveActionType })
-    correctiveAction: OilCorrectiveActionType;
+  @Prop({ required: true, enum: OilActionToDoType })
+  actionToDo: OilActionToDoType;
+
+  @Prop({ required: true, enum: OilCorrectiveActionType })
+  correctiveAction: OilCorrectiveActionType;
 
     @Prop({ 
         min: 0, 

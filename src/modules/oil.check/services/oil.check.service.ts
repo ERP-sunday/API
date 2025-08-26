@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OilCheck, OilTestMethod, OilCorrectiveActionType } from '../models/oil.check.model';
+import { OilCheck, OilTestMethod, OilCorrectiveActionType, OilActionToDoType } from '../models/oil.check.model';
 import { OilCheckDTO } from '../dto/oil.check.dto';
 import { OilCheckRepository } from '../repositories/oil.check.repository';
 import { FryerRepository } from '../../fryer/repositories/fryer.repository';
@@ -52,6 +52,7 @@ export class OilCheckService extends BaseService {
             fryer: fryer,
             date: startDate,
             testMethod: OilTestMethod.NO_TEST,
+            actionToDo: OilActionToDoType.NO_ACTION,
             correctiveAction: OilCorrectiveActionType.NO_ACTION,
             polarPercentage: null,
           };
@@ -76,11 +77,12 @@ export class OilCheckService extends BaseService {
 
   async createOilCheck(dto: OilCheckDTO): Promise<OilCheck> {
     try {
-      const { fryerId, testMethod, correctiveAction, polarPercentage } = dto;
+      const { fryerId, testMethod, actionToDo, correctiveAction, polarPercentage } = dto;
 
       const saved = await this.oilCheckRepository.insert({
         fryer: new Types.ObjectId(fryerId),
         testMethod,
+        actionToDo,
         correctiveAction,
         date: new Date(dto.date),
         polarPercentage,

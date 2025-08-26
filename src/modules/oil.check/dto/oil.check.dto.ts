@@ -8,7 +8,7 @@ import {
     IsDateString,
     ValidateIf,
 } from 'class-validator';
-import { OilTestMethod, OilCorrectiveActionType } from '../models/oil.check.model';
+import { OilTestMethod, OilActionToDoType, OilCorrectiveActionType } from '../models/oil.check.model';
 import { ValidationMessages } from 'src/common/utils/validation.messages';
 
 export class OilCheckDTO {
@@ -22,6 +22,10 @@ export class OilCheckDTO {
   @IsDateString({}, { message: ValidationMessages.DATE })
   @IsNotEmpty({ message: ValidationMessages.REQUIRED })
   date: string;
+
+    @IsEnum(OilActionToDoType, { message: ValidationMessages.ENUM })
+    @IsNotEmpty({ message: ValidationMessages.REQUIRED })
+    actionToDo: OilActionToDoType;
 
     @IsEnum(OilCorrectiveActionType, { message: ValidationMessages.ENUM })
     @IsNotEmpty({ message: ValidationMessages.REQUIRED })
