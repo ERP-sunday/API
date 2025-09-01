@@ -10,14 +10,14 @@ export class OilStatusResponseDTO {
   date: string;
 
   @ApiProperty({
-    description: 'Statut des contrôles d\'huile pour la journée',
+    description: "Statut des contrôles d'huile pour la journée",
     enum: OilStatus,
     example: OilStatus.NORMAL,
   })
   status: OilStatus;
 
   @ApiProperty({
-    description: 'Nombre total d\'anomalies détectées dans la journée',
+    description: "Nombre total d'anomalies détectées dans la journée",
     example: 0,
     type: Number,
   })

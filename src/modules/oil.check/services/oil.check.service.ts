@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { OilCheck, OilTestMethod, OilCorrectiveActionType, OilActionToDoType } from '../models/oil.check.model';
+import {
+  OilCheck,
+  OilTestMethod,
+  OilCorrectiveActionType,
+  OilActionToDoType,
+} from '../models/oil.check.model';
 import { OilCheckDTO } from '../dto/oil.check.dto';
 import { OilCheckRepository } from '../repositories/oil.check.repository';
 import { FryerRepository } from '../../fryer/repositories/fryer.repository';
@@ -22,14 +27,18 @@ export class OilCheckService extends BaseService {
   async getAllOilChecks(filter: DateRangeFilter) {
     try {
       // Créer les dates de début et fin en UTC
-      const startDate = new Date(Date.UTC(filter.year, filter.month - 1, filter.day));
-      const endDate = new Date(Date.UTC(filter.year, filter.month - 1, filter.day, 23, 59, 59, 999));
+      const startDate = new Date(
+        Date.UTC(filter.year, filter.month - 1, filter.day),
+      );
+      const endDate = new Date(
+        Date.UTC(filter.year, filter.month - 1, filter.day, 23, 59, 59, 999),
+      );
 
       const mongoFilter = {
         date: {
           $gte: startDate,
-          $lte: endDate
-        }
+          $lte: endDate,
+        },
       };
 
       // Appels en parallèle
@@ -43,7 +52,7 @@ export class OilCheckService extends BaseService {
       // Associer chaque fryer à son contrôle d'huile (ou objet vide mais conforme au modèle)
       return fryers.map((fryer) => {
         const check = oilChecks.find(
-          (c) => c.fryer && c.fryer._id.toString() === fryer._id.toString()
+          (c) => c.fryer && c.fryer._id.toString() === fryer._id.toString(),
         );
         if (check) {
           const { fryer: fryerData, ...rest } = check;
@@ -79,7 +88,13 @@ export class OilCheckService extends BaseService {
 
   async createOilCheck(dto: OilCheckDTO): Promise<OilCheck> {
     try {
-      const { fryerId, testMethod, actionToDo, correctiveAction, polarPercentage } = dto;
+      const {
+        fryerId,
+        testMethod,
+        actionToDo,
+        correctiveAction,
+        polarPercentage,
+      } = dto;
 
       const saved = await this.oilCheckRepository.insert({
         fryer: new Types.ObjectId(fryerId),
@@ -244,9 +259,7 @@ export class OilCheckService extends BaseService {
           currentStatus.status = OilStatus.CRITICAL;
         } else if (currentStatus.anomalyCount === 1) {
           currentStatus.status = OilStatus.WARNING;
-        } else if (
-          currentStatus.completedFryersCount === totalFryersCount
-        ) {
+        } else if (currentStatus.completedFryersCount === totalFryersCount) {
           // Pas d'anomalies et toutes les friteuses ont leurs contrôles
           currentStatus.status = OilStatus.NORMAL;
         } else {

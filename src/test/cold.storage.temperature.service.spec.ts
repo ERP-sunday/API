@@ -14,7 +14,7 @@ import { ColdStorageTemperatureDTO } from '../modules/cold.storage.temperature/d
 import { ColdStorageTemperaturePatchDTO } from '../modules/cold.storage.temperature/dto/cold.storage.temperature.patch.dto';
 import { ColdStorageType } from '../common/utils/types/cold.storage.type';
 import { TemperatureAnomalyType } from '../modules/cold.storage.temperature/enums/temperature.anomaly.enum';
-import { CorrectiveActionType } from '../modules/cold.storage.temperature/enums/corrective.action.enum';
+import { TemperatureCorrectiveActionType } from '../modules/cold.storage.temperature/enums/temperature.corrective.action.enum';
 import { TemperatureStatus } from '../modules/cold.storage.temperature/enums/temperature.status.enum';
 import { DateRangeFilter } from '../common/filters/date.range.filter';
 
@@ -338,7 +338,8 @@ describe('ColdStorageTemperatureService', () => {
           {
             temperature: -5.0, // Trop basse pour une chambre positive (min 0°C)
             time: '09:00',
-            correctiveAction: CorrectiveActionType.TECHNICIAN_INTERVENTION,
+            correctiveAction:
+              TemperatureCorrectiveActionType.TECHNICIAN_INTERVENTION,
           },
         ],
       };
@@ -362,7 +363,8 @@ describe('ColdStorageTemperatureService', () => {
           temperatureRecords: expect.arrayContaining([
             expect.objectContaining({
               anomaly: TemperatureAnomalyType.TOO_LOW,
-              correctiveAction: CorrectiveActionType.TECHNICIAN_INTERVENTION,
+              correctiveAction:
+                TemperatureCorrectiveActionType.TECHNICIAN_INTERVENTION,
             }),
           ]),
         }),
@@ -377,7 +379,7 @@ describe('ColdStorageTemperatureService', () => {
           {
             temperature: 8.0, // Trop haute pour une chambre positive (max 4.5°C)
             time: '09:00',
-            correctiveAction: CorrectiveActionType.DOOR_CLOSED,
+            correctiveAction: TemperatureCorrectiveActionType.DOOR_CLOSED,
           },
         ],
       };
@@ -401,7 +403,7 @@ describe('ColdStorageTemperatureService', () => {
           temperatureRecords: expect.arrayContaining([
             expect.objectContaining({
               anomaly: TemperatureAnomalyType.TOO_HIGH,
-              correctiveAction: CorrectiveActionType.DOOR_CLOSED,
+              correctiveAction: TemperatureCorrectiveActionType.DOOR_CLOSED,
             }),
           ]),
         }),
