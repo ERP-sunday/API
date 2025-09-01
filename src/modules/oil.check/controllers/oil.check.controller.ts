@@ -17,6 +17,7 @@ import { OilCheckDTO } from '../dto/oil.check.dto';
 import { DateRangeFilter } from '../../../common/filters/date.range.filter';
 import { BaseController } from '../../../common/controllers/base.controller';
 import { OilCheckPatchDTO } from '../dto/oil.check.patch.dto';
+import { OilStatusResponseDTO } from '../dto/oil.status.response.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'oil-check', version: '1' })
@@ -45,6 +46,16 @@ export class OilCheckController extends BaseController<
     });
 
     const data = await this.service.getAllOilChecks(filter);
+    return { error: null, data };
+  }
+
+  @Get('/status-range')
+  @HttpCode(HttpStatus.OK)
+  async getStatusRange(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ): Promise<{ error: null; data: OilStatusResponseDTO[] }> {
+    const data = await this.service.getOilStatusRange(startDate, endDate);
     return { error: null, data };
   }
 
