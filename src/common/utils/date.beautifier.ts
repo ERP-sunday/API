@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { Schema } from 'mongoose';
 
 export default class DateBeautifier {
