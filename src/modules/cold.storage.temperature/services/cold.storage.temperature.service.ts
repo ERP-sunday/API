@@ -17,6 +17,7 @@ import { TemperatureAnomalyType } from '../enums/temperature.anomaly.enum';
 import { TemperatureCorrectiveActionType } from '../enums/temperature.corrective.action.enum';
 import { TemperatureStatus } from '../enums/temperature.status.enum';
 import { TemperatureStatusResponseDTO } from '../dto/temperature.status.response.dto';
+import { DateUTCUtils } from '../../../common/utils/date.utc.utils';
 
 @Injectable()
 export class ColdStorageTemperatureService extends BaseService {
@@ -30,12 +31,7 @@ export class ColdStorageTemperatureService extends BaseService {
   async getAllColdStorageTemperatures(filter: DateRangeFilter) {
     try {
       // Créer les dates de début et fin en UTC
-      const startDate = new Date(
-        Date.UTC(filter.year, filter.month - 1, filter.day),
-      );
-      const endDate = new Date(
-        Date.UTC(filter.year, filter.month - 1, filter.day, 23, 59, 59, 999),
-      );
+      const { startDate, endDate } = DateUTCUtils.createDayRangeUTC(filter);
 
       const mongoFilter = {
         date: {
@@ -175,28 +171,8 @@ export class ColdStorageTemperatureService extends BaseService {
         );
 
         // Création de la date en UTC
-        const localDate = new Date(date);
-        const startOfDay = new Date(
-          Date.UTC(
-            localDate.getFullYear(),
-            localDate.getMonth(),
-            localDate.getDate(),
-            0,
-            0,
-            0,
-          ),
-        );
-        const endOfDay = new Date(
-          Date.UTC(
-            localDate.getFullYear(),
-            localDate.getMonth(),
-            localDate.getDate(),
-            23,
-            59,
-            59,
-            999,
-          ),
-        );
+        const startOfDay = DateUTCUtils.toStartOfDayUTC(date);
+        const endOfDay = DateUTCUtils.toEndOfDayUTC(date);
 
         const existing =
           await this.coldStorageTemperatureRepository.findOptionalBy({
@@ -296,9 +272,7 @@ export class ColdStorageTemperatureService extends BaseService {
 
       // Gestion de la date
       if (updateDto.date) {
-        const newDate = new Date(updateDto.date);
-        newDate.setHours(0, 0, 0, 0);
-        update.date = newDate;
+        update.date = DateUTCUtils.toStartOfDayUTC(updateDto.date);
       }
 
       // Gestion des temperatureRecords
@@ -372,45 +346,11 @@ export class ColdStorageTemperatureService extends BaseService {
     endDate?: string,
   ): Promise<TemperatureStatusResponseDTO[]> {
     try {
-      let start: Date;
-      let end: Date;
-
-      if (startDate && endDate) {
-        // Si les deux dates sont fournies, on les utilise
-        const [startYear, startMonth, startDay] = startDate
-          .split('-')
-          .map(Number);
-        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
-
-        start = new Date(Date.UTC(startYear, startMonth - 1, startDay));
-        end = new Date(
-          Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999),
-        );
-      } else if (startDate) {
-        // Si seulement la date de début est fournie, on prend jusqu'à aujourd'hui
-        const [startYear, startMonth, startDay] = startDate
-          .split('-')
-          .map(Number);
-        start = new Date(Date.UTC(startYear, startMonth - 1, startDay));
-        end = new Date();
-        end.setUTCHours(23, 59, 59, 999);
-      } else if (endDate) {
-        // Si seulement la date de fin est fournie, on prend le dernier mois
-        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
-        end = new Date(
-          Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999),
-        );
-        start = new Date(end);
-        start.setUTCMonth(start.getUTCMonth() - 1);
-        start.setUTCHours(0, 0, 0, 0);
-      } else {
-        // Si aucune date n'est fournie, on prend le mois en cours
-        end = new Date();
-        end.setUTCHours(23, 59, 59, 999);
-        start = new Date(end);
-        start.setUTCDate(1);
-        start.setUTCHours(0, 0, 0, 0);
-      }
+      // Création de la plage de dates flexible en UTC
+      const { start, end } = DateUTCUtils.createFlexibleDateRange(
+        startDate,
+        endDate,
+      );
 
       const mongoFilter = {
         date: {

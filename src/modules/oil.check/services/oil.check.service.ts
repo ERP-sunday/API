@@ -14,6 +14,7 @@ import { DateRangeFilter } from '../../../common/filters/date.range.filter';
 import { OilCheckPatchDTO } from '../dto/oil.check.patch.dto';
 import { OilStatus } from '../enums/oil.status.enum';
 import { OilStatusResponseDTO } from '../dto/oil.status.response.dto';
+import { DateUTCUtils } from '../../../common/utils/date.utc.utils';
 
 @Injectable()
 export class OilCheckService extends BaseService {
@@ -27,12 +28,7 @@ export class OilCheckService extends BaseService {
   async getAllOilChecks(filter: DateRangeFilter) {
     try {
       // Créer les dates de début et fin en UTC
-      const startDate = new Date(
-        Date.UTC(filter.year, filter.month - 1, filter.day),
-      );
-      const endDate = new Date(
-        Date.UTC(filter.year, filter.month - 1, filter.day, 23, 59, 59, 999),
-      );
+      const { startDate, endDate } = DateUTCUtils.createDayRangeUTC(filter);
 
       const mongoFilter = {
         date: {
@@ -96,12 +92,15 @@ export class OilCheckService extends BaseService {
         polarPercentage,
       } = dto;
 
+      // Création de la date en UTC
+      const startOfDay = DateUTCUtils.toStartOfDayUTC(dto.date);
+
       const saved = await this.oilCheckRepository.insert({
         fryer: new Types.ObjectId(fryerId),
         testMethod,
         actionToDo,
         correctiveAction,
-        date: new Date(dto.date),
+        date: startOfDay,
         polarPercentage,
       });
 
@@ -120,9 +119,12 @@ export class OilCheckService extends BaseService {
 
   async updateOilCheck(id: string, dto: OilCheckPatchDTO): Promise<OilCheck> {
     try {
+      // Création de la date en UTC
+      const startOfDay = DateUTCUtils.toStartOfDayUTC(dto.date);
+
       const updatePayload: Partial<OilCheck> = {
         ...dto,
-        date: new Date(dto.date),
+        date: startOfDay,
         fryer: new Types.ObjectId(dto.fryerId),
       };
 
@@ -152,45 +154,11 @@ export class OilCheckService extends BaseService {
     endDate?: string,
   ): Promise<OilStatusResponseDTO[]> {
     try {
-      let start: Date;
-      let end: Date;
-
-      if (startDate && endDate) {
-        // Si les deux dates sont fournies, on les utilise
-        const [startYear, startMonth, startDay] = startDate
-          .split('-')
-          .map(Number);
-        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
-
-        start = new Date(Date.UTC(startYear, startMonth - 1, startDay));
-        end = new Date(
-          Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999),
-        );
-      } else if (startDate) {
-        // Si seulement la date de début est fournie, on prend jusqu'à aujourd'hui
-        const [startYear, startMonth, startDay] = startDate
-          .split('-')
-          .map(Number);
-        start = new Date(Date.UTC(startYear, startMonth - 1, startDay));
-        end = new Date();
-        end.setUTCHours(23, 59, 59, 999);
-      } else if (endDate) {
-        // Si seulement la date de fin est fournie, on prend le dernier mois
-        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
-        end = new Date(
-          Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999),
-        );
-        start = new Date(end);
-        start.setUTCMonth(start.getUTCMonth() - 1);
-        start.setUTCHours(0, 0, 0, 0);
-      } else {
-        // Si aucune date n'est fournie, on prend le mois en cours
-        end = new Date();
-        end.setUTCHours(23, 59, 59, 999);
-        start = new Date(end);
-        start.setUTCDate(1);
-        start.setUTCHours(0, 0, 0, 0);
-      }
+      // Création de la plage de dates flexible en UTC
+      const { start, end } = DateUTCUtils.createFlexibleDateRange(
+        startDate,
+        endDate,
+      );
 
       const mongoFilter = {
         date: {
