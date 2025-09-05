@@ -10,6 +10,7 @@ import { ColdStorageTemperatureModule } from './modules/cold.storage.temperature
 import { FryerModule } from './modules/fryer/fryer.module';
 import { OilCheckModule } from './modules/oil.check/oil.check.module';
 import { SupplierModule } from './modules/supplier/supplier.module';
+import { CoolingModule } from './modules/cooling/cooling.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SupplierModule } from './modules/supplier/supplier.module';
     FryerModule,
     OilCheckModule,
     SupplierModule,
+    CoolingModule,
   ],
   providers: [JwtAuthGuard],
 })

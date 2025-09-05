@@ -14,6 +14,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { CoolingService } from '../services/cooling.service';
 import { CoolingDTO } from '../dto/cooling.dto';
 import { CoolingPatchDTO } from '../dto/cooling.patch.dto';
+import { CoolingFinishDTO } from '../dto/cooling.finish.dto';
 import { BaseController } from '../../../common/controllers/base.controller';
 
 @UseGuards(JwtAuthGuard)
@@ -64,15 +65,8 @@ export class CoolingController extends BaseController<CoolingDTO, CoolingPatchDT
 
   @Patch('/:id/finish')
   @HttpCode(HttpStatus.OK)
-  async finishCooling(@Param('id') id: string, @Body('finalTemperature') finalTemperature: number) {
-    const data = await this.service.finishCooling(id, finalTemperature);
-    return { error: null, data };
-  }
-
-  @Get('/:id/alert-check')
-  @HttpCode(HttpStatus.OK)
-  async checkAlert(@Param('id') id: string) {
-    const data = await this.service.checkCoolingAlert(id);
+  async finishCooling(@Param('id') id: string, @Body() finishDto: CoolingFinishDTO) {
+    const data = await this.service.finishCooling(id, finishDto);
     return { error: null, data };
   }
 }
