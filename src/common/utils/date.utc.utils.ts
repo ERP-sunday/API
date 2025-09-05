@@ -139,4 +139,12 @@ export class DateUTCUtils {
   static getCurrentEndOfDayUTC(): Date {
     return this.toEndOfDayUTC(new Date());
   }
+
+  /**
+   * Obtient la date/heure actuelle en UTC
+   * @returns Date actuelle avec heure précise en UTC (JavaScript stocke nativement en UTC)
+   */
+  static getCurrentDateUTC(): Date {
+    return new Date();
+  }
 }

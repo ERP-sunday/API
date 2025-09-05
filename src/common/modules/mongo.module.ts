@@ -24,6 +24,8 @@ import {
   SupplierSchema,
 } from '../../modules/supplier/models/supplier.model';
 import { SupplierRepository } from '../../modules/supplier/repositories/supplier.repository';
+import { Cooling, CoolingSchema } from 'src/modules/cooling/models/cooling.model';
+import { CoolingRepository } from 'src/modules/cooling/repositories/cooling.repository';
 
 @Module({
   imports: [
@@ -44,6 +46,7 @@ import { SupplierRepository } from '../../modules/supplier/repositories/supplier
     NestMongooseModule.forFeature([
       { name: Supplier.name, schema: SupplierSchema },
     ]),
+    NestMongooseModule.forFeature([{ name: Cooling.name, schema: CoolingSchema }])
   ],
   providers: [
     UserRepository,
@@ -52,6 +55,7 @@ import { SupplierRepository } from '../../modules/supplier/repositories/supplier
     FryerRepository,
     OilCheckRepository,
     SupplierRepository,
+    CoolingRepository
   ],
   exports: [
     NestMongooseModule,
@@ -61,6 +65,7 @@ import { SupplierRepository } from '../../modules/supplier/repositories/supplier
     FryerRepository,
     OilCheckRepository,
     SupplierRepository,
+    CoolingRepository
   ],
 })
 export class MongoModule {}
